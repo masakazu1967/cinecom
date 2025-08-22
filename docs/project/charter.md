@@ -93,10 +93,10 @@ frontend-app:
 - **協調**: 要件定義エージェント（成果物引き渡し）、PMエージェント（追加調査承認）、アーキテクトエージェント（技術制約相談）
 - **KPI**: 要求抽出完全性≥95%、分類精度≥90%、矛盾検出率≥85%、分析完了時間≤3営業日
 - **Taskツールでの指示例**:
-  - **基本要求分析**: `Task(subagent_type="general-purpose", description="ステークホルダー要求分析", prompt="docs/meetings/stakeholder_interviews/ ディレクトリ内のヒアリング議事録（初回・追加・補完調査含む）を分析し、要求分析書（docs/project/requirements_analysis.md）・矛盾点整理表（docs/project/requirements_issues.md）・追加調査項目リスト（docs/project/additional_research.md）を作成してください。プロジェクト憲章の制約条件も考慮してください。")`
-  - **要件変更対応**: `Task(subagent_type="general-purpose", description="要件変更分析", prompt="docs/meetings/requirements_sessions/ 内の要件変更議事録を分析し、既存要求分析書への影響を評価して更新版を作成してください。変更内容と影響範囲を明確に記録してください。")`
-  - **優先度分析**: `Task(subagent_type="general-purpose", description="要求優先度分析", prompt="要求分析書を基に各要求のビジネス価値・技術実現性・依存関係を評価し、MVP vs 将来拡張の初期分類を行ってください。")`
-  - **技術整合性チェック**: `Task(subagent_type="general-purpose", description="技術制約適合性検証", prompt="要求分析結果を技術スタック（NestJS、Next.js、PostgreSQL、マイクロサービス構成）と照らし合わせ、実現困難な要求を特定し代替案を提示してください。")`
+  - **基本要求分析**: `Task(subagent_type="requirements_analysis", description="ステークホルダー要求分析", prompt="docs/meetings/stakeholder_interviews/ ディレクトリ内のヒアリング議事録（初回・追加・補完調査含む）を分析し、要求分析書（docs/project/requirements_analysis.md）・矛盾点整理表（docs/project/requirements_issues.md）・追加調査項目リスト（docs/project/additional_research.md）を作成してください。プロジェクト憲章の制約条件も考慮してください。")`
+  - **要件変更対応**: `Task(subagent_type="requirements_analysis", description="要件変更分析", prompt="docs/meetings/requirements_sessions/ 内の要件変更議事録を分析し、既存要求分析書への影響を評価して更新版を作成してください。変更内容と影響範囲を明確に記録してください。")`
+  - **優先度分析**: `Task(subagent_type="requirements_analysis", description="要求優先度分析", prompt="要求分析書を基に各要求のビジネス価値・技術実現性・依存関係を評価し、MVP vs 将来拡張の初期分類を行ってください。")`
+  - **技術整合性チェック**: `Task(subagent_type="requirements_analysis", description="技術制約適合性検証", prompt="要求分析結果を技術スタック（NestJS、Next.js、PostgreSQL、マイクロサービス構成）と照らし合わせ、実現困難な要求を特定し代替案を提示してください。")`
 
 **要件定義エージェント**:
 
@@ -113,9 +113,9 @@ frontend-app:
   - **更新**: user_stories.mdを修正 + 未実装の場合は既存Issue更新、実装済みの場合は新Issue作成
   - **進捗管理**: GitHub Issuesをカンバンで視覚化して進捗追跡
 - **Taskツールでの指示例**:
-  - **要件定義書作成**: `Task(subagent_type="general-purpose", description="要件定義書作成", prompt="要求分析書（docs/project/requirements_analysis.md）を基に、Cinecomプロジェクトの詳細な要件定義書を作成してください。機能要件・非機能要件・制約条件を明確に定義してください。")`
-  - **ユーザーストーリー作成**: `Task(subagent_type="general-purpose", description="ユーザーストーリー作成", prompt="要件定義書を基に、INVEST原則に従ったユーザーストーリーを作成し、重複チェックを行った上でdocs/project/user_stories.mdに保存してください。対応するGitHub Issuesも作成してください。")`
-  - **優先順位確定**: `Task(subagent_type="general-purpose", description="機能優先順位確定", prompt="要求分析書の初期優先度評価を基に、ビジネス価値・技術的依存関係・開発コストを考慮して最終的な機能優先順位を決定してください。")`
+  - **要件定義書作成**: `Task(subagent_type="requirements_definition", description="要件定義書作成", prompt="要求分析書（docs/project/requirements_analysis.md）を基に、Cinecomプロジェクトの詳細な要件定義書を作成してください。機能要件・非機能要件・制約条件を明確に定義してください。")`
+  - **ユーザーストーリー作成**: `Task(subagent_type="requirements_definition", description="ユーザーストーリー作成", prompt="要件定義書を基に、INVEST原則に従ったユーザーストーリーを作成し、重複チェックを行った上でdocs/project/user_stories.mdに保存してください。対応するGitHub Issuesも作成してください。")`
+  - **優先順位確定**: `Task(subagent_type="requirements_definition", description="機能優先順位確定", prompt="要求分析書の初期優先度評価を基に、ビジネス価値・技術的依存関係・開発コストを考慮して最終的な機能優先順位を決定してください。")`
 
 **UX/UIデザインエージェント**:
 
@@ -128,8 +128,8 @@ frontend-app:
   - **Level 3**: 根本的UX変更（ユーザーフロー大幅変更）→ 全体合意 + 人間承認
 - **KPI**: デザイン一貫性スコア、ユーザビリティテスト結果
 - **Taskツールでの指示例**:
-  - **ワイヤーフレーム作成**: `Task(subagent_type="general-purpose", description="UI/UXワイヤーフレーム作成", prompt="Cinecomプロジェクトのユーザーストーリーに基づいて、映画・俳優検索、シーン管理機能のワイヤーフレームを作成してください。レスポンシブWebUIを考慮してください。")`
-  - **プロトタイプ作成**: `Task(subagent_type="general-purpose", description="プロトタイプ作成", prompt="作成したワイヤーフレームを基に、インタラクティブなプロトタイプを作成してください。")`
+  - **ワイヤーフレーム作成**: `Task(subagent_type="ux_ui_design", description="UI/UXワイヤーフレーム作成", prompt="Cinecomプロジェクトのユーザーストーリーに基づいて、映画・俳優検索、シーン管理機能のワイヤーフレームを作成してください。レスポンシブWebUIを考慮してください。")`
+  - **プロトタイプ作成**: `Task(subagent_type="ux_ui_design", description="プロトタイプ作成", prompt="作成したワイヤーフレームを基に、インタラクティブなプロトタイプを作成してください。")`
   - **設計承認依頼**: PMエージェントがLevel 2以上の場合に人間承認プロセスを開始
 
 **アーキテクトエージェント**:
@@ -143,9 +143,9 @@ frontend-app:
   - **Level 3**: 技術スタック変更、アーキテクチャ根本変更 → 全体合意 + 人間承認
 - **KPI**: システム設計品質、技術選定適合性
 - **Taskツールでの指示例**:
-  - **予備作業（並列実行可能）**: `Task(subagent_type="general-purpose", description="技術スタック調査", prompt="映像・俳優データベースサービス用の技術スタック（NestJS、Next.js、PostgreSQL等）のベストプラクティス、マイクロサービス分割パターン、類似プロジェクト事例を調査し、技術選定の基礎資料を作成してください。")`
-  - **詳細設計（要件定義後）**: `Task(subagent_type="general-purpose", description="システムアーキテクチャ設計", prompt="要件定義書に基づいて、Cinecomプロジェクトのマイクロサービス構成を詳細設計してください。user-service、movie-service、actor-service、scene-service、review-serviceの技術スタック選定と相互連携を定義してください。")`
-  - **API仕様設計**: `Task(subagent_type="general-purpose", description="サービス間API仕様設計", prompt="システム設計に基づいて各マイクロサービス間のRESTful API仕様を設計し、docs/architecture/api_specification.mdに記録してください。")`
+  - **予備作業（並列実行可能）**: `Task(subagent_type="architect", description="技術スタック調査", prompt="映像・俳優データベースサービス用の技術スタック（NestJS、Next.js、PostgreSQL等）のベストプラクティス、マイクロサービス分割パターン、類似プロジェクト事例を調査し、技術選定の基礎資料を作成してください。")`
+  - **詳細設計（要件定義後）**: `Task(subagent_type="architect", description="システムアーキテクチャ設計", prompt="要件定義書に基づいて、Cinecomプロジェクトのマイクロサービス構成を詳細設計してください。user-service、movie-service、actor-service、scene-service、review-serviceの技術スタック選定と相互連携を定義してください。")`
+  - **API仕様設計**: `Task(subagent_type="architect", description="サービス間API仕様設計", prompt="システム設計に基づいて各マイクロサービス間のRESTful API仕様を設計し、docs/architecture/api_specification.mdに記録してください。")`
 
 #### **開発系エージェント**
 
@@ -158,8 +158,8 @@ frontend-app:
 - **協調**: DevOpsエージェント（システム全体パフォーマンス分析）
 - **KPI**: ページロード時間、コードカバレッジ、ESLint準拠率
 - **Taskツールでの指示例**:
-  - **UI実装**: `Task(subagent_type="general-purpose", description="Next.js UI実装", prompt="UX/UIデザインのワイヤーフレームに基づいて、Next.js 14+ with TypeScriptでWebアプリケーションを実装してください。Tailwind CSS + HeadlessUIを使用し、レスポンシブ対応してください。")`
-  - **API統合**: `Task(subagent_type="general-purpose", description="マイクロサービスAPI統合", prompt="バックエンドの各マイクロサービス（user-service、movie-service等）のAPIと統合し、フロントエンドからデータ取得・更新ができるようにしてください。")`
+  - **UI実装**: `Task(subagent_type="frontend", description="Next.js UI実装", prompt="UX/UIデザインのワイヤーフレームに基づいて、Next.js 14+ with TypeScriptでWebアプリケーションを実装してください。Tailwind CSS + HeadlessUIを使用し、レスポンシブ対応してください。")`
+  - **API統合**: `Task(subagent_type="frontend", description="マイクロサービスAPI統合", prompt="バックエンドの各マイクロサービス（user-service、movie-service等）のAPIと統合し、フロントエンドからデータ取得・更新ができるようにしてください。")`
   - **パフォーマンス最適化**: PMエージェントが実装完了後に最適化タスクを発行
 
 **バックエンドエージェント**:
@@ -171,8 +171,8 @@ frontend-app:
 - **協調**: DevOpsエージェント（システム全体パフォーマンス分析）
 - **KPI**: API応答時間、エラー率、コードカバレッジ
 - **Taskツールでの指示例**:
-  - **マイクロサービス実装**: `Task(subagent_type="general-purpose", description="マイクロサービス実装", prompt="アーキテクト設計とDB設計に基づいて、NestJS + TypeScriptで以下のマイクロサービスを実装してください: user-service、movie-service、actor-service、scene-service、review-service。各サービスのRESTful APIとビジネスロジックを含めてください。")`
-  - **サービス間認証**: `Task(subagent_type="general-purpose", description="サービス間認証構築", prompt="JWT + OAuth2を使用してマイクロサービス間の認証システムを構築してください。セキュリティ要件に従って実装してください。")`
+  - **マイクロサービス実装**: `Task(subagent_type="backend", description="マイクロサービス実装", prompt="アーキテクト設計とDB設計に基づいて、NestJS + TypeScriptで以下のマイクロサービスを実装してください: user-service、movie-service、actor-service、scene-service、review-service。各サービスのRESTful APIとビジネスロジックを含めてください。")`
+  - **サービス間認証**: `Task(subagent_type="backend", description="サービス間認証構築", prompt="JWT + OAuth2を使用してマイクロサービス間の認証システムを構築してください。セキュリティ要件に従って実装してください。")`
   - **API最適化**: PMエージェントが基本実装完了後にパフォーマンス最適化タスクを発行
 
 **データベースエージェント**:
@@ -184,9 +184,9 @@ frontend-app:
 - **協調**: DevOpsエージェント（システム全体パフォーマンス分析）
 - **KPI**: クエリ実行時間、データ整合性、インデックス効率
 - **Taskツールでの指示例**:
-  - **予備作業（並列実行可能）**: `Task(subagent_type="general-purpose", description="DB技術調査", prompt="マイクロサービス用PostgreSQL設計のベストプラクティス、TypeORM活用法、データベース分割パターン、サービス間データ整合性確保手法を調査し、DB技術選定の基礎資料を作成してください。")`
-  - **詳細設計（システム設計後）**: `Task(subagent_type="general-purpose", description="マイクロサービス用DB設計", prompt="システム設計とAPI仕様に基づいて、PostgreSQL 15+でサービス別データベーススキーマを設計してください。user-service、movie-service、actor-service、scene-service、review-service用のスキーマとTypeORMエンティティを作成してください。")`
-  - **マイグレーション作成**: `Task(subagent_type="general-purpose", description="データベースマイグレーション作成", prompt="設計したスキーマに基づいてTypeORMマイグレーションファイルを作成し、データベース環境をセットアップしてください。")`
+  - **予備作業（並列実行可能）**: `Task(subagent_type="database", description="DB技術調査", prompt="マイクロサービス用PostgreSQL設計のベストプラクティス、TypeORM活用法、データベース分割パターン、サービス間データ整合性確保手法を調査し、DB技術選定の基礎資料を作成してください。")`
+  - **詳細設計（システム設計後）**: `Task(subagent_type="database", description="マイクロサービス用DB設計", prompt="システム設計とAPI仕様に基づいて、PostgreSQL 15+でサービス別データベーススキーマを設計してください。user-service、movie-service、actor-service、scene-service、review-service用のスキーマとTypeORMエンティティを作成してください。")`
+  - **マイグレーション作成**: `Task(subagent_type="database", description="データベースマイグレーション作成", prompt="設計したスキーマに基づいてTypeORMマイグレーションファイルを作成し、データベース環境をセットアップしてください。")`
   - **パフォーマンス最適化**: PMエージェントが基本実装完了後にクエリ最適化タスクを発行
 
 #### **品質保証系エージェント**
@@ -198,8 +198,8 @@ frontend-app:
 - **権限**: テスト合格基準の設定
 - **KPI**: テストカバレッジ、バグ検出率、テスト実行時間
 - **Taskツールでの指示例**:
-  - **テストスイート作成**: `Task(subagent_type="general-purpose", description="マイクロサービステスト作成", prompt="各マイクロサービスの単体テスト、統合テスト、E2Eテストスイートを作成してください。Jest + React Testing Libraryを使用し、80%以上のカバレッジを達成してください。")`
-  - **テスト実行・分析**: `Task(subagent_type="general-purpose", description="テスト実行・カバレッジ分析", prompt="作成したテストスイートを実行し、カバレッジ分析を行ってレポートを作成してください。")`
+  - **テストスイート作成**: `Task(subagent_type="test", description="マイクロサービステスト作成", prompt="各マイクロサービスの単体テスト、統合テスト、E2Eテストスイートを作成してください。Jest + React Testing Libraryを使用し、80%以上のカバレッジを達成してください。")`
+  - **テスト実行・分析**: `Task(subagent_type="test", description="テスト実行・カバレッジ分析", prompt="作成したテストスイートを実行し、カバレッジ分析を行ってレポートを作成してください。")`
   - **次フェーズ連携**: PMエージェントがテスト完了後にセキュリティエージェントへTaskを発行
 
 **セキュリティエージェント**:
@@ -209,8 +209,8 @@ frontend-app:
 - **権限**: セキュリティ要件の設定
 - **KPI**: 脆弱性スコア、セキュリティテスト合格率
 - **Taskツールでの指示例**:
-  - **セキュリティ監査**: `Task(subagent_type="general-purpose", description="マイクロサービスセキュリティ監査", prompt="OWASP Top 10に基づいて全マイクロサービスのセキュリティ監査を実行してください。脆弱性スキャン、サービス間認証検証、API セキュリティ検証を含めてください。")`
-  - **セキュリティ強化**: `Task(subagent_type="general-purpose", description="セキュリティ強化実装", prompt="監査結果に基づいてセキュリティ強化策を実装し、個人情報暗号化とデータ保護を確保してください。")`
+  - **セキュリティ監査**: `Task(subagent_type="security", description="マイクロサービスセキュリティ監査", prompt="OWASP Top 10に基づいて全マイクロサービスのセキュリティ監査を実行してください。脆弱性スキャン、サービス間認証検証、API セキュリティ検証を含めてください。")`
+  - **セキュリティ強化**: `Task(subagent_type="security", description="セキュリティ強化実装", prompt="監査結果に基づいてセキュリティ強化策を実装し、個人情報暗号化とデータ保護を確保してください。")`
   - **次フェーズ連携**: PMエージェントがセキュリティ要件達成後にDevOpsエージェントへTaskを発行
 
 #### **運用系エージェント**
@@ -222,8 +222,8 @@ frontend-app:
 - **権限**: デプロイ方法・インフラ構成・Claude Code協調環境・パフォーマンス改善施策の決定
 - **KPI**: デプロイ成功率、システム稼働率、エージェント応答時間
 - **Taskツールでの指示例**:
-  - **CI/CD構築**: `Task(subagent_type="general-purpose", description="マイクロサービス用CI/CD構築", prompt="GitHub ActionsでマイクロサービスのCI/CDパイプラインを構築してください。サービス別のステージングデプロイ、プロダクトタグベース本番デプロイを設定してください。")`
-  - **デプロイ環境構築**: `Task(subagent_type="general-purpose", description="デプロイ環境構築", prompt="Vercel (Frontend) + Render (Backend Services)でデプロイ環境を構築し、システム監視とSentry統合を設定してください。")`
+  - **CI/CD構築**: `Task(subagent_type="devops", description="マイクロサービス用CI/CD構築", prompt="GitHub ActionsでマイクロサービスのCI/CDパイプラインを構築してください。サービス別のステージングデプロイ、プロダクトタグベース本番デプロイを設定してください。")`
+  - **デプロイ環境構築**: `Task(subagent_type="devops", description="デプロイ環境構築", prompt="Vercel (Frontend) + Render (Backend Services)でデプロイ環境を構築し、システム監視とSentry統合を設定してください。")`
   - **パフォーマンス分析**: PMエージェントが全体実装完了後にシステム最適化タスクを発行
 
 **プロジェクトマネージャーエージェント**:
@@ -240,7 +240,7 @@ frontend-app:
   - **承認プロセス**: Level 2以上の設計変更時に人間承認プロセスを開始
   - **課題管理**: ブロッカー発生時の代替案検討とエスカレーション
 - **Taskツール活用例**:
-  - **フェーズ開始**: `Task(subagent_type="general-purpose", description="要件定義", prompt="プロジェクト憲章に基づいてCinecomの要件定義を作成...")`と同時に複数エージェントへ並列発行
+  - **フェーズ開始**: `Task(subagent_type="requirements_definition", description="要件定義", prompt="プロジェクト憲章に基づいてCinecomの要件定義を作成...")`と同時に複数エージェントへ並列発行
   - **進捗管理**: TodoWriteで各フェーズの状況を追跡し、完了したタスクから次のタスクを動的に発行
   - **品質管理**: 各エージェントの成果物レビューと品質基準達成の確認
 - **人間レビュー待ち受けプロセス**:
@@ -803,6 +803,20 @@ docs/
     ├── agent_responsibilities.md
     ├── discord_integration.md
     └── emergency_procedures.md
+
+.claude/
+└── agents/
+    ├── requirements_analysis.md     # Claude Codeサブエージェント定義
+    ├── requirements_definition.md
+    ├── ux_ui_design.md
+    ├── architect.md
+    ├── frontend.md
+    ├── backend.md
+    ├── database.md
+    ├── test.md
+    ├── security.md
+    ├── devops.md
+    └── project_manager.md
 ```
 
 #### **ドキュメント更新ルール**
