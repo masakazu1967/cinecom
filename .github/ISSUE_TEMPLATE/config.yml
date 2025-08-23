@@ -1,0 +1,11 @@
+blank_issues_enabled: false
+contact_links:
+  - name: 🤝 Agent Coordination Discussion
+    url: https://github.com/cinecom-team/cinecom/discussions
+    about: Discuss coordination between project agents and development workflow
+  - name: 📖 Documentation
+    url: https://github.com/cinecom-team/cinecom/wiki
+    about: Check the project documentation and development guides
+  - name: 💬 General Questions
+    url: https://github.com/cinecom-team/cinecom/discussions/categories/q-a
+    about: Ask general questions about the Cinecom project

@@ -1,0 +1,100 @@
+# CODEOWNERS
+# 
+# This file defines which users are automatically requested for review
+# when someone opens a pull request.
+#
+# Each line is a file pattern followed by one or more owners.
+# Order is important; the last matching pattern takes precedence.
+
+# Global ownership - requires review for all changes
+* @cinecom-team
+
+# Documentation - requires documentation team review
+docs/ @docs-team
+*.md @docs-team
+README* @docs-team
+
+# Architecture & Design - requires architect review
+docs/architecture/ @architect-team
+docs/design/ @ux-design-team
+docs/agents/ @project-manager
+
+# Project Management - requires PM review
+docs/project/ @project-manager
+docs/meetings/ @project-manager
+.github/ @devops-team @project-manager
+
+# Frontend - requires frontend team review
+frontend/ @frontend-team
+*.tsx @frontend-team
+*.ts @frontend-team
+*.jsx @frontend-team
+*.js @frontend-team
+*.css @frontend-team
+*.scss @frontend-team
+tailwind.config.* @frontend-team
+next.config.* @frontend-team
+package.json @frontend-team
+yarn.lock @frontend-team
+package-lock.json @frontend-team
+
+# Backend - requires backend team review  
+backend/ @backend-team
+*.nest.* @backend-team
+*.service.ts @backend-team
+*.controller.ts @backend-team
+*.module.ts @backend-team
+*.guard.ts @backend-team
+*.interceptor.ts @backend-team
+*.decorator.ts @backend-team
+
+# Database - requires database team review
+backend/src/entities/ @database-team
+backend/src/migrations/ @database-team
+backend/src/database/ @database-team
+*.entity.ts @database-team
+*.migration.ts @database-team
+database/ @database-team
+*.sql @database-team
+
+# Testing - requires test team review
+tests/ @test-team
+*.test.* @test-team
+*.spec.* @test-team
+jest.config.* @test-team
+playwright.config.* @test-team
+e2e/ @test-team
+
+# DevOps & Infrastructure - requires devops review
+.github/workflows/ @devops-team
+docker/ @devops-team
+Dockerfile* @devops-team
+docker-compose*.yml @devops-team
+.dockerignore @devops-team
+infrastructure/ @devops-team
+scripts/ @devops-team
+*.sh @devops-team
+
+# Security - requires security team review
+backend/src/auth/ @security-team
+backend/src/guards/ @security-team
+*.security.* @security-team
+.env* @security-team @devops-team
+
+# Configuration files - requires multiple team review
+tsconfig*.json @frontend-team @backend-team
+.eslintrc* @frontend-team @backend-team
+.prettierrc* @frontend-team @backend-team
+.gitignore @devops-team
+.nvmrc @devops-team @frontend-team
+
+# Microservice specific ownership
+backend/services/user-service/ @backend-team @security-team
+backend/services/movie-service/ @backend-team @database-team
+backend/services/actor-service/ @backend-team @database-team
+backend/services/scene-service/ @backend-team @database-team
+backend/services/review-service/ @backend-team @database-team
+
+# Critical files requiring additional oversight
+CODEOWNERS @project-manager @devops-team
+LICENSE @project-manager

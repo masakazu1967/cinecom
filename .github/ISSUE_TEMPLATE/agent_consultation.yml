@@ -1,0 +1,167 @@
+name: Agent Consultation
+description: Request consultation or collaboration between project agents
+title: "[Consultation] "
+labels: ["consultation", "agent-coordination"]
+assignees: []
+
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Use this template when one agent needs to consult with another agent for technical advice, design review, or collaboration.
+
+  - type: dropdown
+    id: requesting-agent
+    attributes:
+      label: Requesting Agent
+      description: Which agent is requesting the consultation?
+      options:
+        - Requirements Analysis Agent
+        - Requirements Definition Agent
+        - UX/UI Design Agent
+        - Architect Agent
+        - Backend Agent
+        - Frontend Agent
+        - Database Agent
+        - Test Agent
+        - Security Agent
+        - DevOps Agent
+        - Project Manager Agent
+    validations:
+      required: true
+
+  - type: dropdown
+    id: target-agent
+    attributes:
+      label: Target Agent
+      description: Which agent should provide the consultation?
+      options:
+        - Requirements Analysis Agent
+        - Requirements Definition Agent
+        - UX/UI Design Agent
+        - Architect Agent
+        - Backend Agent
+        - Frontend Agent
+        - Database Agent
+        - Test Agent
+        - Security Agent
+        - DevOps Agent
+        - Project Manager Agent
+    validations:
+      required: true
+
+  - type: dropdown
+    id: consultation-type
+    attributes:
+      label: Consultation Type
+      description: What type of consultation is needed?
+      options:
+        - Technical Review
+        - Design Review
+        - Architecture Decision
+        - Integration Guidance
+        - Best Practice Advice
+        - Problem Resolution
+        - Specification Clarification
+        - Quality Assurance
+        - Security Review
+        - Performance Optimization
+    validations:
+      required: true
+
+  - type: checkboxes
+    id: urgency
+    attributes:
+      label: Urgency Level
+      description: How urgent is this consultation?
+      options:
+        - label: Critical - Blocking current work (4 hours SLA)
+        - label: High - Important for current milestone (24 hours SLA)
+        - label: Medium - Should be addressed soon (3 days SLA)
+        - label: Low - Future consideration (1 week SLA)
+
+  - type: textarea
+    id: context-background
+    attributes:
+      label: Context and Background
+      description: Provide context about the current situation or problem
+      placeholder: |
+        Current situation:
+        - What are you working on?
+        - What stage of the project is this related to?
+        - What decisions have been made so far?
+    validations:
+      required: true
+
+  - type: textarea
+    id: specific-question
+    attributes:
+      label: Specific Consultation Request
+      description: What specific advice, review, or guidance do you need?
+      placeholder: |
+        Specific questions or requests:
+        - What exactly do you need help with?
+        - What decisions need to be made?
+        - What should be reviewed?
+    validations:
+      required: true
+
+  - type: textarea
+    id: options-considered
+    attributes:
+      label: Options Considered
+      description: What alternatives or approaches have you already considered?
+      placeholder: |
+        Options evaluated:
+        1. Option A: [pros/cons]
+        2. Option B: [pros/cons]
+        3. Option C: [pros/cons]
+
+  - type: textarea
+    id: related-resources
+    attributes:
+      label: Related Resources
+      description: Relevant files, documents, or code that should be reviewed
+      placeholder: |
+        Please review:
+        - docs/architecture/system_design.md
+        - backend/src/services/movie-service.ts
+        - API specification section X.Y
+
+  - type: textarea
+    id: constraints-requirements
+    attributes:
+      label: Constraints and Requirements
+      description: Important constraints or requirements that should be considered
+      placeholder: |
+        Must consider:
+        - Performance requirements
+        - Security constraints  
+        - Integration requirements
+        - Timeline limitations
+
+  - type: textarea
+    id: expected-outcome
+    attributes:
+      label: Expected Outcome
+      description: What kind of response or outcome are you looking for?
+      placeholder: |
+        Looking for:
+        - Recommendation on best approach
+        - Review approval/feedback
+        - Technical guidance
+        - Decision validation
+
+  - type: textarea
+    id: impact-if-delayed
+    attributes:
+      label: Impact if Delayed
+      description: What happens if this consultation is delayed?
+      placeholder: How does delay affect your work and the project timeline?
+
+  - type: textarea
+    id: additional-context
+    attributes:
+      label: Additional Context
+      description: Any other relevant information
+      placeholder: Additional details that might be helpful for the consultation...
