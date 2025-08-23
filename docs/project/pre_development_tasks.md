@@ -18,21 +18,21 @@
 
 ### 1.2 Taskツール標準化
 
-- [ ] 各エージェント用promptテンプレート作成
-- [ ] Task呼び出し仕様書作成 (`docs/agents/task_calling_standards.md`)
-- [ ] エージェント間連携プロトコル具体化
-- [ ] 成果物引き継ぎフォーマット標準化
+- [x] 各エージェント用promptテンプレート作成
+- [x] Task呼び出し仕様書作成 (`docs/agents/task_calling_standards.md`)
+- [x] エージェント間連携プロトコル具体化
+- [x] 成果物引き継ぎフォーマット標準化
 
 ## 2. プロジェクト管理基盤の構築
 
 ### 2.1 GitHub設定
 
 - [x] リポジトリ初期設定（README、.gitignore、ライセンス）
-- [ ] ブランチ保護ルール設定
-- [ ] CODEOWNERS ファイル作成
-- [ ] Issue/PRテンプレート作成
-- [ ] GitHub Projects設定（カンバンボード）
-- [ ] GitHub Actions基本ワークフロー作成
+- [x] ブランチ保護ルール設定
+- [x] CODEOWNERS ファイル作成
+- [x] Issue/PRテンプレート作成
+- [x] GitHub Projects設定（カンバンボード）
+- [x] GitHub Actions基本ワークフロー作成
 
 ### 2.2 開発環境統一
 
