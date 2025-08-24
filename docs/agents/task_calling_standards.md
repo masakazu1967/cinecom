@@ -11,7 +11,7 @@ Claude CodeのTaskツールを使用したサブエージェント呼び出し�
 ```python
 Task(
     subagent_type="agent_name",
-    description="short_description", 
+    description="short_description",
     prompt="detailed_prompt_with_context"
 )
 ```
@@ -30,7 +30,7 @@ Task(
 
 ```yaml
 requirements_analysis:     # 要求分析エージェント
-requirements_definition:   # 要件定義エージェント  
+requirements_definition:   # 要件定義エージェント
 ux_ui_design:             # UX/UIデザインエージェント
 architect:                # アーキテクトエージェント
 frontend:                 # フロントエンドエージェント
@@ -88,7 +88,7 @@ Task(
 )
 
 Task(
-    subagent_type="database", 
+    subagent_type="database",
     description="DB技術調査",
     prompt="""
 PostgreSQL + TypeORMでのマイクロサービス用DB設計の
@@ -98,7 +98,7 @@ PostgreSQL + TypeORMでのマイクロサービス用DB設計の
 
 Task(
     subagent_type="devops",
-    description="インフラ技術調査", 
+    description="インフラ技術調査",
     prompt="""
 Vercel + Render環境でのマイクロサービスデプロイ戦略の
 技術調査を実施し、CI/CDパイプライン基本設計を検討してください。
@@ -117,7 +117,7 @@ Task(
 ## 前提条件
 要件定義書が完成済み (docs/project/requirements.md)
 
-## タスク概要  
+## タスク概要
 要件定義に基づいて、マイクロサービス構成のシステムアーキテクチャを設計してください。
 
 ## 依存入力
@@ -146,7 +146,7 @@ Task(
 # Level 2以上の重要な成果物での人間レビュー要求
 Task(
     subagent_type="architect",
-    description="システム設計レビュー", 
+    description="システム設計レビュー",
     prompt="""
 ## タスク概要
 完成したシステムアーキテクチャ設計の人間レビューを依頼し、
@@ -191,7 +191,7 @@ Task(
 
 ## 期待する成果物
 - frontend/components/MovieSearch.tsx
-- frontend/components/MovieList.tsx  
+- frontend/components/MovieList.tsx
 - frontend/pages/movies/index.tsx
 
 ## 技術要件
@@ -208,7 +208,7 @@ Task(
 """
 )
 
-# ❌ Bad: 曖昧で不十分なprompt  
+# ❌ Bad: 曖昧で不十分なprompt
 Task(
     subagent_type="frontend",
     description="画面作成",
@@ -231,7 +231,7 @@ Task(
 ## 期待する成果物（必須）
 - tests/api/ (APIテストスイート)
   - GET /movies テスト
-  - POST /movies テスト  
+  - POST /movies テスト
   - PUT /movies/:id テスト
   - DELETE /movies/:id テスト
 
@@ -292,10 +292,10 @@ def phase1_requirements_flow():
     # Step 1: 要求分析
     Task(
         subagent_type="requirements_analysis",
-        description="要求分析実行", 
+        description="要求分析実行",
         prompt="..." # 詳細prompt
     )
-    
+
     # Step 2: 要求分析完了後、要件定義を自動発行
     # プロジェクトマネージャーが完了を検知して次を発行
 ```
@@ -305,7 +305,7 @@ def phase1_requirements_flow():
 ```mermaid
 graph TD
     A[要件定義完了] --> B[システム設計]
-    A --> C[UX/UI設計] 
+    A --> C[UX/UI設計]
     A --> D[DB技術調査]
     B --> E[統合・次フェーズ]
     C --> E
@@ -318,10 +318,10 @@ def phase1_parallel_tasks():
     # 複数タスクを同時発行
     tasks = [
         Task(subagent_type="architect", description="技術調査", prompt="..."),
-        Task(subagent_type="database", description="DB調査", prompt="..."), 
+        Task(subagent_type="database", description="DB調査", prompt="..."),
         Task(subagent_type="ux_ui_design", description="UX調査", prompt="...")
     ]
-    
+
     # プロジェクトマネージャーが全完了を待機
     # 全完了後にPhase 2移行
 ```
@@ -353,20 +353,20 @@ def robust_task_execution():
             description="API実装",
             prompt="..."
         )
-        
+
         # 成果物品質チェック
         if not validate_output(result):
             raise TaskQualityError("品質基準未達成")
-            
+
     except TaskExecutionError as e:
         # Task実行エラー：リトライまたは代替案
         log_error(f"Task実行エラー: {e}")
         return retry_with_modified_prompt(e)
-        
+
     except TaskQualityError as e:
         # 品質基準未達成：修正Task発行
         return Task(
-            subagent_type="backend", 
+            subagent_type="backend",
             description="品質改善",
             prompt=f"前回の成果物を以下の基準で改善してください: {e.criteria}"
         )
@@ -381,12 +381,12 @@ def dependency_aware_execution():
         "docs/project/requirements.md",
         "docs/architecture/system_design.md"
     ]
-    
+
     missing_files = check_missing_dependencies(required_files)
     if missing_files:
         # ブロッカーレポート・代替案検討
         return escalate_dependency_issue(missing_files)
-    
+
     # 依存解決後にTask実行
     return Task(subagent_type="backend", description="実装", prompt="...")
 ```
@@ -399,7 +399,7 @@ def dependency_aware_execution():
 # タスク監視指標
 task_metrics:
   execution_time: "平均実行時間10分以内"
-  success_rate: "成功率95%以上" 
+  success_rate: "成功率95%以上"
   quality_score: "品質基準達成率90%以上"
   dependency_resolution: "依存解決時間24時間以内"
 ```
@@ -415,7 +415,7 @@ def quality_validation():
         "frontend": validate_frontend_code,
         "test": validate_test_coverage
     }
-    
+
     return quality_checks[subagent_type](output)
 ```
 
@@ -426,7 +426,7 @@ def quality_validation():
 ```python
 def execute_phase1():
     """Phase 1: 要求分析→要件定義→基盤技術調査"""
-    
+
     # Step 1: 要求分析
     requirements_analysis = Task(
         subagent_type="requirements_analysis",
@@ -437,10 +437,10 @@ def execute_phase1():
             "focus_areas": ["映画・シーン検索機能", "マイクロサービス構成", "MVP範囲定義"]
         })
     )
-    
+
     # Step 2: 要件定義（要求分析完了後）
     requirements_definition = Task(
-        subagent_type="requirements_definition", 
+        subagent_type="requirements_definition",
         description="要件定義作成",
         prompt=get_prompt_template("requirements_definition", {
             "input_analysis": "docs/project/requirements_analysis.md",
@@ -448,14 +448,14 @@ def execute_phase1():
             "output_user_stories": "docs/project/user_stories.md"
         })
     )
-    
+
     # Step 3: 並列技術調査（要件定義完了後）
     tech_research_tasks = [
         Task(subagent_type="architect", description="技術スタック調査", prompt="..."),
         Task(subagent_type="database", description="DB技術調査", prompt="..."),
         Task(subagent_type="devops", description="インフラ調査", prompt="...")
     ]
-    
+
     return [requirements_analysis, requirements_definition] + tech_research_tasks
 ```
 
@@ -472,8 +472,8 @@ def execute_phase1():
 
 ---
 
-**作成日**: 2025年8月22日  
-**最終更新**: 2025年8月22日  
-**目的**: Taskツール標準化による協調システム効率化  
-**対象**: 全プロジェクトメンバー・エージェント  
+**作成日**: 2025年8月22日
+**最終更新**: 2025年8月22日
+**目的**: Taskツール標準化による協調システム効率化
+**対象**: 全プロジェクトメンバー・エージェント
 **次回レビュー**: エージェント間連携プロトコル完成時

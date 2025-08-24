@@ -27,10 +27,10 @@ deliverables:
       format: "markdown"
       size: "15KB"
       checksum: "sha256:abc123..."
-  
+
   secondary:
     - path: "docs/project/requirements_issues.md"
-      type: "document" 
+      type: "document"
       description: "課題・懸念事項リスト"
       format: "markdown"
       size: "3KB"
@@ -41,7 +41,7 @@ input_resources:
     type: "source_document"
     version: "v1.2"
     usage: "プロジェクト基本要件の抽出"
-  
+
   - path: "docs/meetings/stakeholder_interviews/"
     type: "source_data"
     item_count: 3
@@ -50,11 +50,11 @@ input_resources:
 quality_check:
   passed_criteria:
     - "要求の明確性"
-    - "測定可能性" 
+    - "測定可能性"
     - "ステークホルダー承認可能性"
-  
+
   failed_criteria: []
-  
+
   pending_criteria:
     - name: "MVP範囲明確化"
       reason: "詳細仕様化が後続フェーズで必要"
@@ -66,8 +66,8 @@ handoff_instructions:
       priority: "high"
       instructions: "不明確な要求の明確化を優先"
       dependencies: ["requirements_analysis.md", "requirements_issues.md"]
-    
-    - agent: "architect" 
+
+    - agent: "architect"
       priority: "medium"
       instructions: "マイクロサービス分割指針の検討"
       dependencies: ["requirements_analysis.md"]
@@ -79,8 +79,8 @@ unresolved_issues:
     severity: "medium"
     assigned_to: "requirements_definition"
     resolution_deadline: "2025-08-25"
-  
-  - id: "REQ-002" 
+
+  - id: "REQ-002"
     title: "外部API連携可能性"
     description: "TMDB等の外部映画APIとの連携可能性を検討する必要"
     severity: "low"
@@ -92,12 +92,12 @@ recommended_actions:
     - action: "要件定義エージェントによる詳細要件定義開始"
       priority: "critical"
       estimated_duration: "2-3 days"
-    
+
   parallel:
     - action: "技術調査タスクの並列実行"
       agents: ["architect", "database", "devops"]
       estimated_duration: "1-2 days"
-  
+
   follow_up:
     - action: "ステークホルダーレビューの実施"
       trigger: "要件定義完了後"
@@ -107,10 +107,10 @@ related_resources:
   documentation:
     - "docs/project/charter.md"
     - ".claude/agents/requirements_definition.md"
-  
+
   templates:
     - "docs/project/requirements_definition_template.md"
-  
+
   tools:
     - "scripts/requirement_validator.py"
 ```
@@ -125,7 +125,7 @@ related_resources:
 specialized_handoff:
   functional_requirements:
     categorized:
-      user_management: 
+      user_management:
         - "ユーザー登録・認証"
         - "プロフィール管理"
       movie_catalog:
@@ -134,7 +134,7 @@ specialized_handoff:
       scene_management:
         - "シーン分類・タグ付け"
         - "シーンベース検索"
-    
+
     priority_matrix:
       must_have: ["基本認証", "映画検索", "シーン表示"]
       should_have: ["高度検索", "レビュー機能"]
@@ -145,11 +145,11 @@ specialized_handoff:
       response_time: "< 500ms (90パーセンタイル)"
       throughput: "> 1000 req/sec"
       availability: "> 99.9%"
-    
+
     scalability:
       concurrent_users: "< 10,000"
       data_volume: "< 100万映画、1000万シーン"
-    
+
     security:
       authentication: "OAuth2 + JWT"
       data_protection: "個人情報暗号化"
@@ -159,7 +159,7 @@ specialized_handoff:
       current_state: "大分類のみ定義済み"
       required_detail: "中分類・小分類の具体化"
       stakeholder_input_needed: true
-    
+
     - item: "検索機能の範囲"
       current_state: "基本検索要件のみ"
       required_detail: "詳細検索・フィルタ機能の仕様"
@@ -169,7 +169,7 @@ specialized_handoff:
     resolved_concerns:
       - "データプライバシーの取り扱い → OAuth2認証で解決"
       - "システム可用性 → 99.9% SLA設定で合意"
-    
+
     pending_decisions:
       - "外部API利用の可否 → 技術調査後に判断"
       - "多言語対応の必要性 → MVP後の検討"
@@ -187,12 +187,12 @@ specialized_handoff:
         responsibilities: ["認証", "プロフィール管理"]
         technology_stack: "NestJS + PostgreSQL"
         api_endpoints: ["/auth", "/users", "/profiles"]
-      
+
       movie_service:
         responsibilities: ["映画データ管理", "検索機能"]
         technology_stack: "NestJS + PostgreSQL + Redis"
         api_endpoints: ["/movies", "/search"]
-      
+
       scene_service:
         responsibilities: ["シーン管理", "分類システム"]
         technology_stack: "NestJS + PostgreSQL"
@@ -203,12 +203,12 @@ specialized_handoff:
       - "RESTful設計の徹底"
       - "統一的なエラーレスポンス"
       - "GraphQLの部分採用（複雑なクエリ用）"
-    
+
     authentication_flow:
       strategy: "JWT + Refresh Token"
       token_expiry: "15分 (access), 7日 (refresh)"
       authorization_header: "Bearer {token}"
-    
+
     data_formats:
       request: "application/json"
       response: "application/json"
@@ -241,7 +241,7 @@ specialized_handoff:
       format: "JSON構造化ログ"
       levels: "error, warn, info, debug"
       rotation: "日次ローテーション"
-    
+
     error_handling:
       global_filter: "全サービス共通エラーフィルター"
       custom_exceptions: "ビジネスロジック例外の統一"
@@ -260,14 +260,14 @@ specialized_handoff:
       styling: "Tailwind CSS + Headless UI"
       state_management: "Zustand + SWR"
       form_handling: "React Hook Form"
-    
+
     component_inventory:
       pages:
         - "/movies (映画一覧・検索)"
         - "/movies/[id] (映画詳細)"
         - "/scenes (シーン検索)"
         - "/auth (認証)"
-      
+
       components:
         - "MovieCard (映画カード)"
         - "SearchBar (検索バー)"
@@ -279,7 +279,7 @@ specialized_handoff:
       framework: "Jest + React Testing Library"
       coverage_target: "> 80%"
       test_files: "*.test.tsx pattern"
-      
+
       priority_components:
         - "SearchBar (複雑なロジック)"
         - "AuthForm (セキュリティ重要)"
@@ -289,13 +289,13 @@ specialized_handoff:
       api_integration: "MSW (Mock Service Worker)"
       test_scenarios:
         - "映画検索フロー"
-        - "ユーザー認証フロー" 
+        - "ユーザー認証フロー"
         - "シーンフィルタリング"
 
     e2e_testing:
       framework: "Playwright"
       test_environments: ["development", "staging"]
-      
+
       critical_paths:
         - "ユーザー登録 → ログイン → 映画検索"
         - "映画詳細閲覧 → シーン探索"
@@ -311,16 +311,16 @@ specialized_handoff:
       lighthouse_score: "> 90 (Performance)"
       core_web_vitals: "Good範囲内"
       bundle_size: "< 500KB (gzipped)"
-    
+
     testing_tools: ["Lighthouse CI", "Bundle Analyzer"]
 
   browser_compatibility:
     target_browsers:
       - "Chrome 90+"
-      - "Firefox 88+"  
+      - "Firefox 88+"
       - "Safari 14+"
       - "Edge 90+"
-    
+
     mobile_testing:
       - "iOS Safari"
       - "Android Chrome"
@@ -336,12 +336,12 @@ completeness_check:
     - [ ] 全ての期待する成果物が作成されている
     - [ ] ファイルサイズ・形式が適切である
     - [ ] チェックサムによる整合性確認済み
-  
+
   documentation:
     - [ ] 成果物の説明が明確である
     - [ ] 使用方法・前提条件が記載されている
     - [ ] 制約条件・注意事項が明記されている
-  
+
   quality:
     - [ ] 定義された品質基準をクリアしている
     - [ ] 品質チェックの結果が記録されている
@@ -352,12 +352,12 @@ handoff_readiness:
     - [ ] 後続エージェントが明確に特定されている
     - [ ] 引き継ぎ指示が具体的である
     - [ ] 依存関係が正しく記載されている
-  
+
   issue_management:
     - [ ] 未解決課題が全て記録されている
     - [ ] 各課題の責任者・期限が明確である
     - [ ] 課題の優先度・影響度が評価されている
-  
+
   action_planning:
     - [ ] 推奨アクションが具体的である
     - [ ] 実行優先度が明確である
@@ -372,7 +372,7 @@ receipt_confirmation:
     - "ファイル存在確認"
     - "フォーマット妥当性検証"
     - "依存関係解決確認"
-  
+
   manual_reviews:
     - "成果物内容の理解確認"
     - "不明点・疑問点の特定"
@@ -383,7 +383,7 @@ feedback_process:
     format: "GitHub Issue"
     template: "引き継ぎ情報明確化依頼"
     response_sla: "4時間以内"
-  
+
   acceptance_confirmation:
     method: "引き継ぎ確認コメント"
     required_items:
@@ -402,9 +402,9 @@ feedback_process:
 class HandoffGenerator:
     def generate_handoff_document(self, agent_name, deliverables, context):
         """標準フォーマットでの引き継ぎ文書生成"""
-        
+
         template = self.load_template(agent_name)
-        
+
         handoff_data = {
             "basic_info": self.extract_basic_info(context),
             "deliverables": self.analyze_deliverables(deliverables),
@@ -413,23 +413,23 @@ class HandoffGenerator:
             "unresolved_issues": self.extract_issues(context),
             "recommended_actions": self.plan_next_actions(context)
         }
-        
+
         return template.render(handoff_data)
-    
+
     def validate_handoff_completeness(self, handoff_document):
         """引き継ぎ情報の完全性検証"""
-        
+
         required_sections = [
             "basic_info", "deliverables", "quality_check",
             "handoff_instructions", "recommended_actions"
         ]
-        
+
         validation_results = {}
         for section in required_sections:
             validation_results[section] = self.validate_section(
                 handoff_document, section
             )
-        
+
         return validation_results
 ```
 
@@ -441,27 +441,27 @@ class HandoffGenerator:
 class QualityChecker:
     def __init__(self):
         self.criteria_definitions = self.load_quality_criteria()
-    
+
     def check_deliverable_quality(self, deliverable_path, agent_type):
         """成果物の品質自動チェック"""
-        
+
         criteria = self.criteria_definitions[agent_type]
         results = {}
-        
+
         for criterion in criteria:
             checker_method = getattr(self, f"check_{criterion['type']}")
             results[criterion['name']] = checker_method(
                 deliverable_path, criterion['parameters']
             )
-        
+
         return self.generate_quality_report(results)
-    
+
     def check_document_structure(self, file_path, required_sections):
         """ドキュメント構造の妥当性チェック"""
-        
+
         content = self.read_file(file_path)
         found_sections = self.extract_sections(content)
-        
+
         return {
             "missing_sections": set(required_sections) - set(found_sections),
             "extra_sections": set(found_sections) - set(required_sections),
@@ -477,26 +477,26 @@ class QualityChecker:
 class HandoffNotificationSystem:
     def notify_handoff_ready(self, from_agent, to_agents, handoff_document):
         """引き継ぎ準備完了通知"""
-        
+
         notification_data = {
             "from_agent": from_agent,
             "deliverables": handoff_document.deliverables,
             "priority": handoff_document.priority,
             "deadline": handoff_document.recommended_actions.immediate[0].deadline
         }
-        
+
         for agent in to_agents:
             self.send_notification(agent, notification_data)
             self.create_github_issue(agent, notification_data)
-    
+
     def track_handoff_progress(self, handoff_id):
         """引き継ぎ進捗追跡"""
-        
+
         status = self.get_handoff_status(handoff_id)
-        
+
         if status.pending_for > datetime.timedelta(hours=24):
             self.send_escalation_alert(handoff_id)
-        
+
         return status
 ```
 
@@ -582,12 +582,12 @@ technical_specifications:
       rationale: "{{decision_rationale}}"
       alternatives_considered: ["{{alt1}}", "{{alt2}}"]
       impact: "{{impact_assessment}}"
-  
+
   implementation_constraints:
     performance: "{{performance_requirements}}"
-    security: "{{security_constraints}}" 
+    security: "{{security_constraints}}"
     compatibility: "{{compatibility_requirements}}"
-  
+
   integration_points:
     - service: "{{service_name}}"
       interface: "{{interface_type}}"
@@ -609,8 +609,8 @@ deployment_considerations:
 
 ---
 
-**作成日**: 2025年8月22日  
-**最終更新**: 2025年8月22日  
-**目的**: エージェント間成果物引き継ぎの標準化・効率化  
-**対象**: 全プロジェクトメンバー・エージェント  
+**作成日**: 2025年8月22日
+**最終更新**: 2025年8月22日
+**目的**: エージェント間成果物引き継ぎの標準化・効率化
+**対象**: 全プロジェクトメンバー・エージェント
 **次回レビュー**: 実際の開発フローでの運用開始時

@@ -17,6 +17,7 @@ graph LR
 ```
 
 **実装例**：
+
 ```python
 # Step 1: 要求分析
 requirements_result = Task(
@@ -31,7 +32,7 @@ requirements_result = Task(
 # Step 2: 要件定義（要求分析完了後）
 requirements_definition = Task(
     subagent_type="requirements_definition",
-    description="要件定義作成", 
+    description="要件定義作成",
     prompt=get_standard_prompt("requirements_definition", {
         "input_analysis": requirements_result.output_path,
         "output_requirements": "docs/project/requirements.md"
@@ -44,7 +45,7 @@ requirements_definition = Task(
 ```mermaid
 graph TD
     A[トリガー] --> B[エージェント1]
-    A --> C[エージェント2] 
+    A --> C[エージェント2]
     A --> D[エージェント3]
     B --> E[統合・次フェーズ]
     C --> E
@@ -52,6 +53,7 @@ graph TD
 ```
 
 **実装例**：
+
 ```python
 # 並列技術調査タスク
 parallel_research = [
@@ -61,13 +63,13 @@ parallel_research = [
         prompt=get_standard_prompt("architect", {"task_type": "tech_research"})
     ),
     Task(
-        subagent_type="database", 
+        subagent_type="database",
         description="DB技術調査",
         prompt=get_standard_prompt("database", {"task_type": "tech_research"})
     ),
     Task(
         subagent_type="devops",
-        description="インフラ技術調査", 
+        description="インフラ技術調査",
         prompt=get_standard_prompt("devops", {"task_type": "tech_research"})
     )
 ]
@@ -86,6 +88,7 @@ graph LR
 ```
 
 **実装例**：
+
 ```python
 # API設計における協調作業
 api_design_collaboration = {
@@ -95,7 +98,7 @@ api_design_collaboration = {
         prompt="システム設計に基づいてRESTful API基本構造を設計し、バックエンドエージェントと協調して詳細仕様を決定してください。"
     ),
     "backend": Task(
-        subagent_type="backend", 
+        subagent_type="backend",
         description="API実装仕様協議",
         prompt="アーキテクトエージェントの基本設計に基づいて、実装観点から最適なAPI仕様を協議し、具体的なエンドポイント定義を作成してください。"
     ),
@@ -123,6 +126,7 @@ api_design_collaboration = {
 ```
 
 **実装**：
+
 ```python
 def api_change_workflow(change_request):
     # Step 1: 影響分析
@@ -139,10 +143,10 @@ API変更提案の影響分析を実施してください。
 協議が必要な範囲を決定してください。
 """
     )
-    
+
     # Step 2: 関連エージェントとの協議
     affected_agents = impact_analysis.affected_agents
-    
+
     consultation_tasks = []
     for agent in affected_agents:
         task = Task(
@@ -157,13 +161,13 @@ API変更提案の影響分析を実施してください。
 """
         )
         consultation_tasks.append(task)
-    
+
     # Step 3: 並列協議実行
     consultation_results = execute_parallel_tasks(consultation_tasks)
-    
+
     # Step 4: 合意形成
     consensus = Task(
-        subagent_type="project_manager", 
+        subagent_type="project_manager",
         description="API変更合意形成",
         prompt=f"""
 各エージェントからの協議結果に基づいて、
@@ -172,7 +176,7 @@ API変更の最終判断と実装計画を作成してください。
 協議結果: {consultation_results}
 """
     )
-    
+
     return consensus
 ```
 
@@ -191,11 +195,12 @@ API変更の最終判断と実装計画を作成してください。
 ```
 
 **実装**：
+
 ```python
 def technical_blocker_resolution(blocker_report):
     # Step 1: 専門エージェント特定
     expert_agent = identify_expert_agent(blocker_report.domain)
-    
+
     # Step 2: 技術相談Task
     consultation = Task(
         subagent_type=expert_agent,
@@ -219,7 +224,7 @@ def technical_blocker_resolution(blocker_report):
 - 利用可能リソース: {blocker_report.resources}
 """
     )
-    
+
     # Step 3: 解決策実装支援
     if consultation.requires_implementation_support:
         implementation_support = Task(
@@ -233,9 +238,9 @@ def technical_blocker_resolution(blocker_report):
 関連エージェント: {consultation.involved_agents}
 """
         )
-        
+
         return implementation_support
-    
+
     return consultation
 ```
 
@@ -254,12 +259,13 @@ def technical_blocker_resolution(blocker_report):
 ```
 
 **実装**：
+
 ```python
 def quality_improvement_workflow(quality_report):
     failed_criteria = quality_report.failed_criteria
-    
+
     improvement_tasks = []
-    
+
     for criterion in failed_criteria:
         if criterion.severity == "critical":
             # 重要な品質問題は専門家相談を含む
@@ -302,9 +308,9 @@ def quality_improvement_workflow(quality_report):
 目標レベル: {criterion.target_state}
 """
             )
-        
+
         improvement_tasks.append(task)
-    
+
     return improvement_tasks
 ```
 
@@ -353,7 +359,7 @@ def quality_improvement_workflow(quality_report):
 
 ## 品質チェック結果
 - [x] 要求の明確性: クリア
-- [x] 測定可能性: クリア  
+- [x] 測定可能性: クリア
 - [x] ステークホルダー承認可能性: クリア
 - [ ] MVP範囲明確化: 要継続検討
 
@@ -391,7 +397,7 @@ def quality_improvement_workflow(quality_report):
 ```yaml
 通信エラー:
   症状: エージェント間のTask呼び出し失敗
-  対応: 
+  対応:
     - 自動リトライ（3回まで）
     - 失敗時はプロジェクトマネージャーにエスカレーション
     - 代替エージェントの検討
@@ -425,7 +431,7 @@ def error_recovery_strategy(error_type, context):
     recovery_actions = {
         "communication_failure": [
             "retry_with_exponential_backoff",
-            "try_alternative_agent", 
+            "try_alternative_agent",
             "escalate_to_project_manager"
         ],
         "dependency_missing": [
@@ -444,7 +450,7 @@ def error_recovery_strategy(error_type, context):
             "request_human_intervention"
         ]
     }
-    
+
     return recovery_actions.get(error_type, ["escalate_to_human"])
 ```
 
@@ -495,10 +501,138 @@ def error_recovery_strategy(error_type, context):
   - エスカレーション頻度
 ```
 
+## 7. GitHub Projects 手動操作ガイド
+
+GitHub ProjectsのDefault workflowsでは一部の操作が自動化されていないため、以下の手動操作が必要です。
+
+### 7.1 Priority設定方法（新しいIssue/PR追加時）
+
+#### ghコマンドでの操作
+
+```bash
+# Issue/PRをプロジェクトに追加
+gh project item-add [PROJECT_NUMBER] --url [ISSUE_OR_PR_URL]
+
+# Priorityを設定（High/Medium/Low）
+gh project item-edit --project-id [PROJECT_ID] --id [ITEM_ID] --field-id [PRIORITY_FIELD_ID] --single-select-option-id [OPTION_ID]
+```
+
+#### Web UIでの操作
+
+1. GitHub Projects画面を開く
+2. 追加されたIssue/PRの行を確認
+3. Priority列をクリック
+4. High/Medium/Lowから適切な優先度を選択
+
+### 7.2 Status変更方法
+
+#### ステータス移行フロー
+
+- **Ready** → **In Progress** → **In Review** → **Done**
+
+#### ghコマンドでのStatus変更
+
+```bash
+# StatusをIn Progressに変更
+gh project item-edit --project-id [PROJECT_ID] --id [ITEM_ID] --field-id [STATUS_FIELD_ID] --single-select-option-id [IN_PROGRESS_OPTION_ID]
+
+# StatusをIn Reviewに変更
+gh project item-edit --project-id [PROJECT_ID] --id [ITEM_ID] --field-id [STATUS_FIELD_ID] --single-select-option-id [IN_REVIEW_OPTION_ID]
+
+# StatusをDoneに変更
+gh project item-edit --project-id [PROJECT_ID] --id [ITEM_ID] --field-id [STATUS_FIELD_ID] --single-select-option-id [DONE_OPTION_ID]
+```
+
+#### Web UIでのStatus変更
+
+1. GitHub Projects画面を開く
+2. 対象Issue/PRのStatus列をクリック
+3. 適切なステータスを選択
+
+### 7.3 手動操作が必要なタイミング
+
+#### Issue作成時
+
+- **自動**: IssueがBacklogステータスで追加
+- **手動**: Priority設定（High/Medium/Low）
+
+#### PR作成時
+
+- **自動**: なし（手動でプロジェクトに追加が必要）
+- **手動**:
+  - プロジェクトへの追加
+  - Priority設定
+  - Status調整（Ready → In Progress）
+
+#### 開発作業開始時
+
+- **手動**: Ready → In Progress
+
+#### PR作成・レビュー依頼時
+
+- **手動**: In Progress → In Review
+
+#### PR承認・マージ完了時
+
+- **自動**: Pull request merged時にDoneに移行
+- **手動**: 必要に応じてDoneステータス確認
+
+### 7.4 プロジェクト情報の取得方法
+
+#### プロジェクトIDとフィールドIDの確認
+
+```bash
+# プロジェクト一覧表示
+gh project list --owner [OWNER]
+
+# プロジェクト詳細表示（フィールドID確認）
+gh project view [PROJECT_NUMBER] --owner [OWNER]
+
+# 特定のアイテムのフィールド値確認
+gh project item-list [PROJECT_NUMBER] --owner [OWNER] --format json
+```
+
+### 7.5 運用のベストプラクティス
+
+#### 定期チェックポイント
+
+- **毎朝**: Backlog状態のIssueのPriority設定確認
+- **PR作成時**: StatusとPriorityの適切性確認
+- **レビュー完了時**: Done移行の確認
+
+#### 効率的な操作方法
+
+1. **Web UIとghコマンドの使い分け**
+   - 単発操作: Web UIが効率的
+   - 一括操作: ghコマンドスクリプト化
+
+2. **Priority設定の指針**
+   - **High**: ブロッカー、緊急修正、リリース必須
+   - **Medium**: 通常の開発タスク
+   - **Low**: 改善提案、将来対応
+
+3. **Status移行の責任者**
+   - **Ready → In Progress**: 作業担当者
+   - **In Progress → In Review**: PR作成者
+   - **In Review → Done**: レビュー承認者またはPM
+
+### 7.6 トラブルシューティング
+
+#### よくある問題と解決方法
+
+**問題**: PRがプロジェクトに自動追加されない
+**解決**: 手動でプロジェクトに追加し、適切なラベルを確認
+
+**問題**: Statusが自動更新されない
+**解決**: GitHub Project設定のWorkflowsを確認し、手動で調整
+
+**問題**: ghコマンドでフィールドIDが分からない
+**解決**: `gh project view [PROJECT_NUMBER] --format json` で詳細情報を確認
+
 ---
 
-**作成日**: 2025年8月22日  
-**最終更新**: 2025年8月22日  
-**目的**: エージェント間連携の具体化・標準化  
-**対象**: 全プロジェクトメンバー・エージェント  
+**作成日**: 2025年8月22日
+**最終更新**: 2025年8月24日
+**目的**: エージェント間連携の具体化・標準化
+**対象**: 全プロジェクトメンバー・エージェント
 **次回レビュー**: 成果物引き継ぎフォーマット標準化完成時
