@@ -20,39 +20,57 @@ GitHubリポジトリの設定画面で以下を設定:
     ✅ Require approvals: 2
     ✅ Dismiss stale PR approvals when new commits are pushed
     ✅ Require review from code owners
-  ✅ Require status checks to pass before merging
+    ✅ Require conversation resolution before merging
+  ✅ Require status checks to pass
     ✅ Require branches to be up to date before merging
     必須ステータスチェック:
       - frontend-ci
-      - backend-ci  
+      - backend-ci
       - security-scan
       - code-quality
-  ✅ Require conversation resolution before merging
   ✅ Require signed commits
   ✅ Require linear history
-  ✅ Include administrators (推奨: 無効化)
-  ✅ Allow force pushes (推奨: 無効化)
-  ✅ Allow deletions (推奨: 無効化)
 ```
 
-### developブランチ保護
+### feature/*ブランチ保護（オプション）
 
-1. **Branch name pattern**: `develop`
+GitHub Flowでは基本的にfeatureブランチの保護は不要ですが、品質管理を強化する場合は以下の設定が可能:
+
+1. **Branch name pattern**: `feature/*`
+2. 以下のオプションを有効化:
+
+```yaml
+保護設定:
+  ✅ Require status checks to pass
+    必須ステータスチェック:
+      - frontend-ci
+      - backend-ci
+      - code-quality
+```
+
+### hotfix/*ブランチ保護
+
+緊急修正ブランチでも最低限の品質チェックを実施:
+
+1. **Branch name pattern**: `hotfix/*`
 2. 以下のオプションを有効化:
 
 ```yaml
 保護設定:
   ✅ Require a pull request before merging
-    ✅ Require approvals: 1
-    ✅ Require review from code owners
-  ✅ Require status checks to pass before merging
+    ✅ Allow specified actors to bypass required pull requests (組織リポジトリのみ)
+      対象者:
+        - devops-team (緊急時の直接プッシュ許可)
+        - project-manager (緊急判断者)
+  ✅ Require status checks to pass
     必須ステータスチェック:
-      - frontend-ci
-      - backend-ci
-      - code-quality
-  ✅ Require conversation resolution before merging
-  ✅ Include administrators
+      - security-scan (緊急時でもセキュリティチェック必須)
+      - code-quality (最低限の品質チェック)
+
+注意: "Allow specified actors to bypass required pull requests"は組織リポジトリでのみ利用可能
 ```
+
+**注意**: GitHub Flowではmainブランチがプロダクションブランチとなるため、developブランチは使用しません。
 
 ## 2. GitHub Projects設定（カンバンボード）
 
@@ -60,7 +78,7 @@ GitHubリポジトリの設定画面で以下を設定:
 
 1. **Projects** タブ → **New project** をクリック
 2. **Project name**: "Cinecom Development Board"
-3. **Template**: "Team backlog" を選択
+3. **Template**: "Team planning" を選択 (または "Blank project" から開始)
 4. **Create project** をクリック
 
 ### ボードのカスタマイズ
@@ -74,23 +92,23 @@ GitHubリポジトリの設定画面で以下を設定:
   - name: "📋 Backlog"
     description: "優先度付けされていないタスク"
     automation: "新しいIssue作成時に自動追加"
-    
+
   - name: "🎯 Ready"
     description: "着手準備が完了したタスク"
     automation: "手動移動"
-    
+
   - name: "🏗️ In Progress"
     description: "作業中のタスク"
     automation: "PRリンク時に自動移動"
-    
+
   - name: "👀 In Review"
-    description: "レビュー中のタスク"  
+    description: "レビュー中のタスク"
     automation: "PR作成時に自動移動"
-    
+
   - name: "🧪 Testing"
     description: "テスト中のタスク"
     automation: "手動移動"
-    
+
   - name: "✅ Done"
     description: "完了したタスク"
     automation: "PRマージ時に自動移動"
@@ -105,19 +123,19 @@ GitHubリポジトリの設定画面で以下を設定:
   Priority:
     type: "Single select"
     options: ["🔴 Critical", "🟠 High", "🟡 Medium", "🟢 Low"]
-    
+
   Component:
-    type: "Single select"  
+    type: "Single select"
     options: ["Frontend", "Backend", "Database", "DevOps", "Documentation"]
-    
+
   Agent:
     type: "Single select"
     options: ["Requirements", "Architecture", "Backend", "Frontend", "Database", "Test", "Security", "DevOps", "PM"]
-    
+
   Story Points:
     type: "Number"
     description: "見積もりポイント"
-    
+
   Sprint:
     type: "Single select"
     options: ["Sprint 1", "Sprint 2", "Sprint 3", "Backlog"]
@@ -133,17 +151,17 @@ GitHubリポジトリの設定画面で以下を設定:
     type: "Board"
     group_by: "Status"
     sort_by: "Priority"
-    
+
   Sprint Planning:
     type: "Table"
     filter: "Sprint = 'Current Sprint'"
     fields: ["Title", "Priority", "Component", "Story Points", "Assignee"]
-    
+
   Agent Workload:
     type: "Table"
     group_by: "Agent"
     fields: ["Title", "Status", "Priority", "Story Points"]
-    
+
   Roadmap:
     type: "Roadmap"
     date_field: "Target Date"
@@ -152,28 +170,36 @@ GitHubリポジトリの設定画面で以下を設定:
 
 ### 自動化ルールの設定
 
-#### Workflow設定
+#### Default Workflows設定
 
-1. **Settings** → **Manage access** → **Workflows** を有効化
-2. 以下のworkflowsを設定:
+プロジェクト内で **Workflows** メニューから以下のDefault workflowsを設定:
 
 ```yaml
-自動化ルール:
-  Issue作成時:
-    - "Backlog" カラムに追加
-    - Priorityを "Medium" に設定
-    
-  PR作成時:
-    - リンクされたIssueを "In Review" に移動
-    - Assigneeを PR作者に設定
-    
-  PRマージ時:
-    - リンクされたIssueを "Done" に移動
-    - "Closed" ラベルを追加
-    
-  PR閉じた時（マージ以外）:
-    - リンクされたIssueを "Ready" に戻す
+利用可能な自動化:
+  Item added to project:
+    - Status を "📋 Backlog" に設定
+
+  Item closed:
+    - Status を "✅ Done" に設定
+
+  Pull request merged:
+    - Status を "✅ Done" に設定
 ```
+
+#### 手動管理が必要な操作
+
+以下の操作はGitHub ProjectsのDefault workflowsでは自動化できません:
+
+```yaml
+手動操作が必要:
+  - Priority設定 (新しいアイテム追加時)
+  - PR作成時のStatus変更 (Ready → In Progress)
+  - PR作成時のStatus変更 (In Progress → In Review)
+  - レビュー完了後の手動移動
+```
+
+**注意**: これらの操作は各エージェントがghコマンドまたはWeb UIで手動実行する必要があります。
+エージェント向けの詳細な操作方法は各エージェントドキュメントに記載します。
 
 ## 3. チーム管理設定
 
@@ -186,39 +212,39 @@ GitHubリポジトリの設定画面で以下を設定:
   cinecom-team:
     members: ["全メンバー"]
     permissions: "Read"
-    
+
   architect-team:
     members: ["システムアーキテクト"]
     permissions: "Triage"
-    
+
   backend-team:
     members: ["バックエンド開発者"]
     permissions: "Write"
-    
+
   frontend-team:
-    members: ["フロントエンド開発者"] 
+    members: ["フロントエンド開発者"]
     permissions: "Write"
-    
+
   database-team:
     members: ["データベース担当者"]
     permissions: "Write"
-    
+
   test-team:
     members: ["テスト担当者"]
     permissions: "Write"
-    
+
   security-team:
     members: ["セキュリティ担当者"]
     permissions: "Write"
-    
+
   devops-team:
     members: ["DevOps担当者"]
     permissions: "Admin"
-    
+
   docs-team:
     members: ["ドキュメント担当者"]
     permissions: "Write"
-    
+
   project-manager:
     members: ["プロジェクトマネージャー"]
     permissions: "Admin"
@@ -236,22 +262,22 @@ Required Secrets:
   VERCEL_TOKEN: "Vercelアクセストークン"
   VERCEL_ORG_ID: "組織ID"
   VERCEL_PROJECT_ID: "プロジェクトID"
-  
+
   # Render設定
   RENDER_API_KEY: "Render APIキー"
   RENDER_SERVICE_ID_STAGING: "ステージング環境サービスID"
   RENDER_SERVICE_ID_PRODUCTION: "本番環境サービスID"
-  
+
   # 環境URL
   STAGING_FRONTEND_URL: "https://cinecom-staging.vercel.app"
   STAGING_BACKEND_URL: "https://cinecom-api-staging.render.com"
   PRODUCTION_FRONTEND_URL: "https://cinecom.vercel.app"
   PRODUCTION_BACKEND_URL: "https://cinecom-api.render.com"
-  
+
   # 分析ツール
   SONAR_TOKEN: "SonarCloudトークン"
   CODECOV_TOKEN: "Codecovトークン"
-  
+
   # 通知設定（オプション）
   SLACK_WEBHOOK: "Slack Webhook URL"
   DISCORD_WEBHOOK: "Discord Webhook URL"
@@ -306,19 +332,19 @@ updates:
     schedule:
       interval: "weekly"
     open-pull-requests-limit: 5
-    
+
   - package-ecosystem: "npm"
-    directory: "/backend"  
+    directory: "/backend"
     schedule:
       interval: "weekly"
     open-pull-requests-limit: 5
-    
+
   - package-ecosystem: "docker"
     directory: "/"
     schedule:
       interval: "monthly"
     open-pull-requests-limit: 3
-    
+
   - package-ecosystem: "github-actions"
     directory: "/"
     schedule:
@@ -334,21 +360,21 @@ updates:
 検証項目:
   ブランチ保護:
     - [ ] mainブランチに直接pushできない
-    - [ ] PRなしでマージできない  
+    - [ ] PRなしでマージできない
     - [ ] 必須レビュアーの承認が必要
     - [ ] CIチェックが必須
-    
+
   Projects:
     - [ ] カンバンボードが表示される
     - [ ] Issue作成時に自動でBacklogに追加
     - [ ] PR作成時にIn Reviewに移動
     - [ ] PRマージ時にDoneに移動
-    
+
   CI/CD:
     - [ ] PRでCIが実行される
     - [ ] mainブランチでCDが実行される
     - [ ] テストが失敗するとマージブロック
-    
+
   セキュリティ:
     - [ ] シークレットスキャンが動作
     - [ ] Dependabotアラートが表示
@@ -364,15 +390,15 @@ updates:
   CIが実行されない:
     原因: "Workflow permissions不足"
     解決: "Settings → Actions → General → Workflow permissions を Read and write に変更"
-    
+
   CODEOWNERSが動作しない:
     原因: "ファイルパスが間違っている"
     解決: "リポジトリルートに配置、パス記法を確認"
-    
+
   Dependabotが動作しない:
     原因: "設定ファイルの構文エラー"
     解決: ".github/dependabot.yml の YAML構文を確認"
-    
+
   Projectsに自動追加されない:
     原因: "Workflow automationが無効"
     解決: "Project設定でWorkflow automationを有効化"
