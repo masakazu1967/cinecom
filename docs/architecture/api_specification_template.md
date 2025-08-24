@@ -2,21 +2,23 @@
 
 ## 基本情報
 
-- **プロジェクト名**: 
-- **API名**: 
+- **プロジェクト名**:
+- **API名**:
 - **バージョン**: v1.0.0
-- **作成者**: 
-- **作成日**: 
-- **最終更新**: 
+- **作成者**:
+- **作成日**:
+- **最終更新**:
 
 ## 1. API概要
 
 ### 1.1 目的と概要
-- **目的**: 
-- **対象システム**: 
-- **主要機能**: 
+
+- **目的**:
+- **対象システム**:
+- **主要機能**:
 
 ### 1.2 API設計原則
+
 - RESTful API設計
 - HTTPステータスコードの適切な使用
 - 統一されたレスポンス形式
@@ -25,12 +27,14 @@
 ## 2. 認証・認可
 
 ### 2.1 認証方式
-```
+
+```html
 Authorization: Bearer <access_token>
 ```
 
 ### 2.2 認証フロー
-```
+
+```text
 1. POST /auth/login → access_token取得
 2. リクエストヘッダーにTokenを含める
 3. Token有効期限: 1時間
@@ -40,7 +44,8 @@ Authorization: Bearer <access_token>
 ## 3. 共通仕様
 
 ### 3.1 ベースURL
-```
+
+```text
 Development: http://localhost:3000/api/v1
 Staging: https://staging-api.example.com/api/v1
 Production: https://api.example.com/api/v1
@@ -57,6 +62,7 @@ Production: https://api.example.com/api/v1
 ### 3.3 共通レスポンス形式
 
 #### 成功レスポンス
+
 ```json
 {
   "success": true,
@@ -68,6 +74,7 @@ Production: https://api.example.com/api/v1
 ```
 
 #### エラーレスポンス
+
 ```json
 {
   "success": false,
@@ -84,6 +91,7 @@ Production: https://api.example.com/api/v1
 ### 3.4 ページネーション
 
 #### リクエストパラメータ
+
 | パラメータ | 型 | デフォルト | 説明 |
 |------------|----|---------|----|
 | page | number | 1 | ページ番号 |
@@ -92,6 +100,7 @@ Production: https://api.example.com/api/v1
 | order | string | DESC | ソート順序(ASC/DESC) |
 
 #### レスポンス形式
+
 ```json
 {
   "success": true,
@@ -114,9 +123,11 @@ Production: https://api.example.com/api/v1
 ### 4.1 認証関連
 
 #### POST /auth/login
+
 **概要**: ユーザーログイン
 
 **リクエスト**:
+
 ```json
 {
   "email": "user@example.com",
@@ -125,6 +136,7 @@ Production: https://api.example.com/api/v1
 ```
 
 **レスポンス(200)**:
+
 ```json
 {
   "success": true,
@@ -142,14 +154,17 @@ Production: https://api.example.com/api/v1
 ```
 
 **エラー**:
+
 - 400: バリデーションエラー
 - 401: 認証情報が正しくない
 - 429: レート制限超過
 
 #### POST /auth/refresh
+
 **概要**: アクセストークン更新
 
 **リクエスト**:
+
 ```json
 {
   "refreshToken": "dGhpc2lz..."
@@ -157,6 +172,7 @@ Production: https://api.example.com/api/v1
 ```
 
 **レスポンス(200)**:
+
 ```json
 {
   "success": true,
@@ -170,11 +186,13 @@ Production: https://api.example.com/api/v1
 ### 4.2 ユーザー管理
 
 #### GET /users/profile
+
 **概要**: ユーザープロフィール取得
 
 **認証**: 必須
 
 **レスポンス(200)**:
+
 ```json
 {
   "success": true,
@@ -190,11 +208,13 @@ Production: https://api.example.com/api/v1
 ```
 
 #### PUT /users/profile
+
 **概要**: ユーザープロフィール更新
 
 **認証**: 必須
 
 **リクエスト**:
+
 ```json
 {
   "name": "New Name",
@@ -203,6 +223,7 @@ Production: https://api.example.com/api/v1
 ```
 
 **レスポンス(200)**:
+
 ```json
 {
   "success": true,
@@ -219,9 +240,11 @@ Production: https://api.example.com/api/v1
 ### 4.3 映画管理
 
 #### GET /movies
+
 **概要**: 映画一覧取得
 
 **クエリパラメータ**:
+
 | パラメータ | 型 | 必須 | 説明 |
 |------------|----|----|---|
 | genre | string | No | ジャンルフィルター |
@@ -230,6 +253,7 @@ Production: https://api.example.com/api/v1
 | search | string | No | タイトル検索 |
 
 **レスポンス(200)**:
+
 ```json
 {
   "success": true,
@@ -260,14 +284,17 @@ Production: https://api.example.com/api/v1
 ```
 
 #### GET /movies/:id
+
 **概要**: 映画詳細取得
 
 **パスパラメータ**:
+
 | パラメータ | 型 | 説明 |
 |-----------|----|----|
 | id | UUID | 映画ID |
 
 **レスポンス(200)**:
+
 ```json
 {
   "success": true,
@@ -295,14 +322,17 @@ Production: https://api.example.com/api/v1
 ```
 
 **エラー**:
+
 - 404: 映画が見つからない
 
 #### POST /movies
+
 **概要**: 映画作成
 
 **認証**: 必須（管理者権限）
 
 **リクエスト**:
+
 ```json
 {
   "title": "New Movie",
@@ -316,6 +346,7 @@ Production: https://api.example.com/api/v1
 ```
 
 **レスポンス(201)**:
+
 ```json
 {
   "success": true,
@@ -338,16 +369,19 @@ Production: https://api.example.com/api/v1
 ### 4.4 レビュー管理
 
 #### POST /movies/:movieId/reviews
+
 **概要**: 映画レビュー投稿
 
 **認証**: 必須
 
 **パスパラメータ**:
+
 | パラメータ | 型 | 説明 |
 |-----------|----|----|
 | movieId | UUID | 映画ID |
 
 **リクエスト**:
+
 ```json
 {
   "rating": 8,
@@ -357,6 +391,7 @@ Production: https://api.example.com/api/v1
 ```
 
 **レスポンス(201)**:
+
 ```json
 {
   "success": true,
@@ -440,6 +475,7 @@ const ws = new WebSocket('wss://api.example.com/ws?token=access_token');
 ### 7.2 メッセージ形式
 
 #### リアルタイム通知
+
 ```json
 {
   "type": "notification",
@@ -474,16 +510,19 @@ const movies = await api.movies.list({
 ## 9. テスト
 
 ### 9.1 Postmanコレクション
+
 - Postmanコレクションファイル: `postman/cinecom-api.json`
 - 環境ファイル: `postman/environments/`
 
 ### 9.2 OpenAPI仕様書
+
 - Swagger UI: `/api/docs`
 - OpenAPI仕様書: `/api/docs/openapi.json`
 
 ---
 
 **API仕様書メンテナンスガイドライン:**
+
 1. 新機能追加時は仕様書を同時更新
 2. 破壊的変更はバージョニングで対応
 3. 非推奨APIは段階的廃止計画を明記

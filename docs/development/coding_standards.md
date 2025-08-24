@@ -4,18 +4,20 @@
 
 - **プロジェクト名**: CineCom
 - **対象言語**: TypeScript, JavaScript, SQL, CSS
-- **作成日**: 
-- **最終更新**: 
+- **作成日**:
+- **最終更新**:
 
 ## 1. 全般的な原則
 
 ### 1.1 基本方針
+
 - **可読性重視**: コードは書かれるより読まれることが多い
 - **一貫性**: プロジェクト全体で統一されたスタイル
 - **保守性**: 変更しやすく、拡張しやすいコード
 - **テスタビリティ**: テストしやすいコード構造
 
 ### 1.2 品質指標
+
 - **ESLint違反**: 0件
 - **TypeScript エラー**: 0件
 - **テストカバレッジ**: 80%以上
@@ -26,6 +28,7 @@
 ### 2.1 命名規則
 
 #### 変数・関数名
+
 ```typescript
 // 良い例: camelCase
 const userName = 'john_doe';
@@ -37,6 +40,7 @@ const UserName = 'john_doe';  // NG（定数でない限り）
 ```
 
 #### 定数
+
 ```typescript
 // 良い例: SCREAMING_SNAKE_CASE
 const MAX_RETRY_COUNT = 3;
@@ -51,6 +55,7 @@ enum UserRole {
 ```
 
 #### クラス・インターフェース・型
+
 ```typescript
 // 良い例: PascalCase
 class UserService { ... }
@@ -64,7 +69,7 @@ interface IUserRepository { ... } // 悪い
 
 ### 2.2 ファイル・ディレクトリ命名
 
-```
+```bash
 // ファイル名: kebab-case
 user-service.ts
 movie-details.component.tsx
@@ -82,6 +87,7 @@ src/
 ### 2.3 import/export 規約
 
 #### import順序
+
 ```typescript
 // 1. Node.jsモジュール
 import fs from 'fs';
@@ -101,6 +107,7 @@ import { validateInput } from '../utils/validation';
 ```
 
 #### export規約
+
 ```typescript
 // 名前付きエクスポート推奨
 export const UserService = { ... };
@@ -117,6 +124,7 @@ export type { User, UserRole } from './user.types';
 ### 2.4 型定義
 
 #### 基本的な型使用
+
 ```typescript
 // Primitiveな型を明確に
 const id: string = 'uuid-v4';
@@ -133,6 +141,7 @@ const users: User[] = [];
 ```
 
 #### インターフェース定義
+
 ```typescript
 // 良い例: 必須・オプションの明確化
 interface CreateUserRequest {
@@ -160,6 +169,7 @@ interface ApiResponse<T> {
 ```
 
 #### 型ガード
+
 ```typescript
 // 型ガード関数
 function isUser(value: unknown): value is User {
@@ -181,6 +191,7 @@ if (isUser(data)) {
 ### 2.5 関数定義
 
 #### 関数形式の統一
+
 ```typescript
 // Arrow function推奨（短い関数）
 const add = (a: number, b: number): number => a + b;
@@ -203,6 +214,7 @@ const fetchUser = async (id: string): Promise<User> => {
 ```
 
 #### 引数の扱い
+
 ```typescript
 // 多数の引数はオブジェクトで
 // 悪い例
@@ -236,7 +248,7 @@ class ValidationError extends Error {
 }
 
 // Result型パターン
-type Result<T, E = Error> = 
+type Result<T, E = Error> =
   | { success: true; data: T }
   | { success: false; error: E };
 
@@ -246,8 +258,8 @@ async function validateUser(data: unknown): Promise<Result<User, ValidationError
     const user = await userSchema.validateAsync(data);
     return { success: true, data: user };
   } catch (error) {
-    return { 
-      success: false, 
+    return {
+      success: false,
       error: new ValidationError('Invalid user data', 'user', 'VALIDATION_FAILED')
     };
   }
@@ -278,7 +290,7 @@ const fetchUserData = async (userId: string) => {
     fetchProfile(userId),
     fetchUserReviews(userId)
   ]);
-  
+
   return { user, profile, reviews };
 };
 ```
@@ -295,18 +307,18 @@ interface MovieCardProps {
   className?: string;
 }
 
-export const MovieCard: React.FC<MovieCardProps> = ({ 
-  movie, 
+export const MovieCard: React.FC<MovieCardProps> = ({
+  movie,
   onRate,
-  className = '' 
+  className = ''
 }) => {
   return (
     <div className={`movie-card ${className}`}>
       <h2>{movie.title}</h2>
       {onRate && (
-        <StarRating 
-          value={movie.rating} 
-          onChange={onRate} 
+        <StarRating
+          value={movie.rating}
+          onChange={onRate}
         />
       )}
     </div>
@@ -332,7 +344,7 @@ export const useMovieSearch = (query: string) => {
     const searchMovies = async () => {
       setLoading(true);
       setError(null);
-      
+
       try {
         const results = await movieService.search(query);
         setMovies(results);
@@ -398,7 +410,7 @@ export class MoviesService {
   async findAll(query: GetMoviesQueryDto): Promise<PaginatedResponse<Movie>> {
     const cacheKey = `movies:${JSON.stringify(query)}`;
     const cached = await this.cacheService.get<PaginatedResponse<Movie>>(cacheKey);
-    
+
     if (cached) {
       return cached;
     }
@@ -522,7 +534,7 @@ CREATE UNIQUE INDEX uk_users_email ON users(email);
 
 ```sql
 -- SELECT文の整形
-SELECT 
+SELECT
     m.id,
     m.title,
     m.release_date,
@@ -530,7 +542,7 @@ SELECT
     COUNT(r.id) as review_count
 FROM movies m
 LEFT JOIN reviews r ON m.id = r.movie_id
-WHERE 
+WHERE
     m.is_published = TRUE
     AND m.release_date >= '2020-01-01'
 GROUP BY m.id, m.title, m.release_date
@@ -539,12 +551,12 @@ ORDER BY average_rating DESC, review_count DESC
 LIMIT 20;
 
 -- UPDATE文
-UPDATE movies 
-SET 
+UPDATE movies
+SET
     title = $1,
     description = $2,
     updated_at = CURRENT_TIMESTAMP
-WHERE 
+WHERE
     id = $3
     AND is_published = TRUE;
 ```
@@ -576,14 +588,14 @@ WHERE
   --color-secondary: #6c757d;
   --color-success: #28a745;
   --color-error: #dc3545;
-  
+
   /* スペーシング */
   --spacing-xs: 0.25rem;
   --spacing-sm: 0.5rem;
   --spacing-md: 1rem;
   --spacing-lg: 1.5rem;
   --spacing-xl: 3rem;
-  
+
   /* フォント */
   --font-family-sans: 'Inter', system-ui, sans-serif;
   --font-size-sm: 0.875rem;
@@ -599,11 +611,11 @@ WHERE
 ```typescript
 /**
  * 映画の評価を計算する
- * 
+ *
  * @param reviews - レビューの配列
  * @param weights - 評価の重み付け設定（オプション）
  * @returns 計算された平均評価（1-10の範囲）
- * 
+ *
  * @example
  * ```typescript
  * const rating = calculateAverageRating(reviews, { recent: 1.2 });
@@ -654,25 +666,28 @@ const results = await movieService.search({
 
 ## API
 
-### create(data: CreateMovieDto): Promise<Movie>
+### `create(data: CreateMovieDto): Promise<Movie>`
+
 新しい映画を作成します。
 
 **パラメータ:**
+
 - `data` - 作成する映画の情報
 
 **戻り値:**
 作成された映画オブジェクト
 
 **例外:**
+
 - `ValidationError` - データが無効な場合
 - `ConflictError` - 映画が既に存在する場合
-```
 
 ## 8. テスト規約
 
 ### 8.1 テストファイル構成
 
-```
+```bash
+
 src/
 ├── services/
 │   ├── movie.service.ts
@@ -680,11 +695,12 @@ src/
 ├── controllers/
 │   ├── movies.controller.ts
 │   └── movies.controller.spec.ts
-└── __tests__/
+└── **tests**/
     ├── integration/
     │   └── movies.integration.spec.ts  # 統合テスト
     └── e2e/
         └── movies.e2e.spec.ts  # E2Eテスト
+
 ```
 
 ### 8.2 テストケース記述
@@ -778,7 +794,7 @@ export const hashPassword = async (password: string): Promise<string> => {
 
 // パスワード検証
 export const verifyPassword = async (
-  password: string, 
+  password: string,
   hash: string
 ): Promise<boolean> => {
   return bcrypt.compare(password, hash);
@@ -809,19 +825,19 @@ const movies = await repository.find(); // 全カラム、全行
 class MovieService {
   async getPopularMovies(): Promise<Movie[]> {
     const cacheKey = 'movies:popular';
-    
+
     // キャッシュから取得試行
     const cached = await this.redis.get(cacheKey);
     if (cached) {
       return JSON.parse(cached);
     }
-    
+
     // データベースから取得
     const movies = await this.repository.findPopular();
-    
+
     // キャッシュに保存（TTL: 1時間）
     await this.redis.setex(cacheKey, 3600, JSON.stringify(movies));
-    
+
     return movies;
   }
 }
@@ -830,6 +846,7 @@ class MovieService {
 ---
 
 **コーディング規約チェックリスト:**
+
 - [ ] ESLint・Prettierの設定が完了している
 - [ ] 型定義がすべて適切に設定されている
 - [ ] エラーハンドリングが適切に実装されている

@@ -2,22 +2,24 @@
 
 ## 基本情報
 
-- **プロジェクト名**: 
-- **設計者**: 
-- **作成日**: 
-- **レビュー日**: 
-- **承認日**: 
-- **バージョン**: 
+- **プロジェクト名**:
+- **設計者**:
+- **作成日**:
+- **レビュー日**:
+- **承認日**:
+- **バージョン**:
 
 ## 1. システム概要
 
 ### 1.1 システム目的
-- **目的**: 
-- **対象ユーザー**: 
-- **主要機能**: 
+
+- **目的**:
+- **対象ユーザー**:
+- **主要機能**:
 
 ### 1.2 システム構成概要
-```
+
+```text
 [クライアント] ↔ [API Gateway] ↔ [アプリケーション] ↔ [データベース]
 ```
 
@@ -26,7 +28,8 @@
 ### 2.1 システムアーキテクチャ
 
 #### 2.1.1 全体構成図
-```
+
+```text
 ┌─────────────┐    ┌─────────────┐    ┌─────────────┐
 │   Frontend  │ ←→ │   Backend   │ ←→ │  Database   │
 │   (Next.js) │    │  (NestJS)   │    │(PostgreSQL) │
@@ -60,7 +63,7 @@
 
 #### サービス間通信
 
-```
+```text
 User Service ←→ Movie Service: REST API
 Movie Service ←→ Review Service: gRPC
 ```
@@ -70,7 +73,8 @@ Movie Service ←→ Review Service: gRPC
 ### 3.1 データベース設計
 
 #### 3.1.1 ER図
-```
+
+```text
 [User] ──── [Review] ──── [Movie]
   │            │            │
   │            │            │
@@ -80,6 +84,7 @@ Movie Service ←→ Review Service: gRPC
 #### 3.1.2 テーブル定義
 
 ##### users テーブル
+
 | カラム名 | データ型 | 制約 | 説明 |
 |----------|----------|------|------|
 | id | UUID | PK | ユーザーID |
@@ -90,7 +95,7 @@ Movie Service ←→ Review Service: gRPC
 
 ### 3.2 データフロー
 
-```
+```text
 Frontend → API Gateway → Service Layer → Repository → Database
 ```
 
@@ -163,11 +168,12 @@ Frontend → API Gateway → Service Layer → Repository → Database
 
 ### 7.2 CI/CDパイプライン
 
-```
+```text
 Code Push → Build → Test → Security Scan → Deploy
 ```
 
 #### パイプラインステップ
+
 1. **Build**: Docker イメージ作成
 2. **Test**: 単体テスト、統合テスト
 3. **Security**: 脆弱性スキャン
@@ -203,7 +209,7 @@ Code Push → Build → Test → Security Scan → Deploy
 
 ### 9.2 テスト環境
 
-```
+```text
 Test Database ← Test Application → Mock External APIs
 ```
 
@@ -242,6 +248,7 @@ Test Database ← Test Application → Mock External APIs
 ---
 
 **設計書レビューチェックリスト:**
+
 - [ ] 要件定義書との整合性確認
 - [ ] 非機能要件の実現可能性検証
 - [ ] セキュリティ要件の網羅性確認

@@ -3,14 +3,15 @@
 ## 基本情報
 
 - **プロジェクト名**: CineCom
-- **作成者**: 
-- **作成日**: 
-- **最終更新**: 
+- **作成者**:
+- **作成日**:
+- **最終更新**:
 - **対象バージョン**: v1.0.0
 
 ## 1. テスト戦略概要
 
 ### 1.1 目的
+
 - 品質の高いソフトウェアの提供
 - 回帰バグの防止
 - リファクタリングの安全性確保
@@ -27,10 +28,10 @@
 
 ## 2. テストピラミッド
 
-```
+```text
     /\
    /  \     E2E Tests (少)
-  /____\    
+  /____\
  /      \   Integration Tests (中)
 /________\  Unit Tests (多)
 ```
@@ -48,6 +49,7 @@
 ### 3.1 単体テスト (Unit Tests)
 
 #### 3.1.1 対象範囲
+
 - サービスクラスのメソッド
 - ユーティリティ関数
 - React コンポーネントの個別動作
@@ -55,7 +57,8 @@
 
 #### 3.1.2 テストフレームワーク
 
-**フロントエンド (Next.js)**
+**フロントエンド (Next.js)**:
+
 - **メインフレームワーク**: Jest
 - **React テスト**: React Testing Library
 - **モック**: MSW (Mock Service Worker)
@@ -70,14 +73,16 @@
 }
 ```
 
-**バックエンド (NestJS)**
+**バックエンド (NestJS)**:
+
 - **メインフレームワーク**: Jest
 - **テストユーティリティ**: @nestjs/testing
 - **データベースモック**: TypeORM テストユーティリティ
 
 #### 3.1.3 テストパターン例
 
-**サービス層テスト**
+**サービス層テスト**:
+
 ```typescript
 // movie.service.spec.ts
 describe('MovieService', () => {
@@ -111,8 +116,8 @@ describe('MovieService', () => {
 
       // Assert
       expect(result).toEqual(expectedMovie);
-      expect(repository.findOne).toHaveBeenCalledWith({ 
-        where: { id: movieId } 
+      expect(repository.findOne).toHaveBeenCalledWith({
+        where: { id: movieId }
       });
     });
 
@@ -129,7 +134,8 @@ describe('MovieService', () => {
 });
 ```
 
-**React コンポーネントテスト**
+**React コンポーネントテスト**:
+
 ```typescript
 // movie-card.component.spec.tsx
 import { render, screen, fireEvent } from '@testing-library/react';
@@ -145,11 +151,11 @@ describe('MovieCard', () => {
 
   it('should display movie information', () => {
     render(<MovieCard movie={mockMovie} />);
-    
+
     expect(screen.getByText('Test Movie')).toBeInTheDocument();
     expect(screen.getByText('8.5')).toBeInTheDocument();
     expect(screen.getByAltText('Test Movie poster')).toHaveAttribute(
-      'src', 
+      'src',
       '/test-poster.jpg'
     );
   });
@@ -157,10 +163,10 @@ describe('MovieCard', () => {
   it('should call onRate when rating is clicked', () => {
     const onRateMock = jest.fn();
     render(<MovieCard movie={mockMovie} onRate={onRateMock} />);
-    
+
     const ratingButton = screen.getByRole('button', { name: /rate/i });
     fireEvent.click(ratingButton);
-    
+
     expect(onRateMock).toHaveBeenCalledWith(mockMovie.id);
   });
 });
@@ -169,6 +175,7 @@ describe('MovieCard', () => {
 ### 3.2 統合テスト (Integration Tests)
 
 #### 3.2.1 対象範囲
+
 - API エンドポイント間の連携
 - データベースとの実際の連携
 - 外部サービスとの連携（モック使用）
@@ -176,7 +183,8 @@ describe('MovieCard', () => {
 
 #### 3.2.2 テスト環境設定
 
-**バックエンド統合テスト**
+**バックエンド統合テスト**:
+
 ```typescript
 // movies.integration.spec.ts
 describe('Movies Integration', () => {
@@ -190,7 +198,7 @@ describe('Movies Integration', () => {
 
     app = moduleFixture.createNestApplication();
     repository = moduleFixture.get<Repository<Movie>>(getRepositoryToken(Movie));
-    
+
     await app.init();
   });
 
@@ -240,9 +248,9 @@ describe('Movies Integration', () => {
 
       // Assert
       expect(response.body.data.title).toBe('New Movie');
-      
-      const savedMovie = await repository.findOne({ 
-        where: { id: response.body.data.id } 
+
+      const savedMovie = await repository.findOne({
+        where: { id: response.body.data.id }
       });
       expect(savedMovie).toBeDefined();
     });
@@ -253,6 +261,7 @@ describe('Movies Integration', () => {
 ### 3.3 E2Eテスト (End-to-End Tests)
 
 #### 3.3.1 対象範囲
+
 - ユーザーシナリオベースのテスト
 - 画面遷移を含む操作
 - 実際のブラウザでの動作確認
@@ -280,7 +289,7 @@ test.describe('Movie Management', () => {
 
     // 検索結果の確認
     await expect(page.locator('[data-testid="movie-card"]')).toHaveCount(1);
-    
+
     // 映画詳細画面に移動
     await page.click('[data-testid="movie-card"]:first-child');
     await expect(page.locator('h1')).toContainText('インターステラー');
@@ -288,7 +297,7 @@ test.describe('Movie Management', () => {
     // レーティング機能のテスト
     await page.click('[data-testid="rating-star-8"]');
     await expect(page.locator('[data-testid="rating-display"]')).toContainText('8');
-    
+
     // 成功メッセージの確認
     await expect(page.locator('[data-testid="rating-success"]')).toBeVisible();
   });
@@ -365,7 +374,7 @@ export class TestDataFactory {
 // テストデータシーダー
 export class TestDataSeeder {
   static async seedMovies(count: number = 10): Promise<Movie[]> {
-    const movies = Array.from({ length: count }, () => 
+    const movies = Array.from({ length: count }, () =>
       TestDataFactory.createMovie()
     );
     return getRepository(Movie).save(movies);
@@ -453,19 +462,19 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
-      
+
       - name: Setup Node.js
         uses: actions/setup-node@v3
         with:
           node-version: '20'
           cache: 'pnpm'
-      
+
       - name: Install dependencies
         run: pnpm install
-      
+
       - name: Run unit tests
         run: pnpm test:coverage
-      
+
       - name: Upload coverage
         uses: codecov/codecov-action@v3
 
@@ -483,19 +492,19 @@ jobs:
           --health-interval 10s
           --health-timeout 5s
           --health-retries 5
-    
+
     steps:
       - uses: actions/checkout@v3
-      
+
       - name: Setup Node.js
         uses: actions/setup-node@v3
         with:
           node-version: '20'
           cache: 'pnpm'
-      
+
       - name: Install dependencies
         run: pnpm install
-      
+
       - name: Run integration tests
         run: pnpm test:integration
         env:
@@ -505,28 +514,28 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
-      
+
       - name: Setup Node.js
         uses: actions/setup-node@v3
         with:
           node-version: '20'
           cache: 'pnpm'
-      
+
       - name: Install dependencies
         run: pnpm install
-      
+
       - name: Install Playwright
         run: pnpm playwright install
-      
+
       - name: Start application
         run: |
           pnpm build
           pnpm start &
           sleep 30
-      
+
       - name: Run E2E tests
         run: pnpm test:e2e
-      
+
       - name: Upload test results
         uses: actions/upload-artifact@v3
         if: always()
@@ -634,6 +643,7 @@ pnpm test:e2e:debug
 ## 9. テスト保守
 
 ### 9.1 テストの更新タイミング
+
 - 機能追加時: 対応するテストケースを同時作成
 - バグ修正時: 再現テストケースを先に作成
 - リファクタリング時: テストが継続して通ることを確認
@@ -653,11 +663,11 @@ test('flaky test with retry', async () => {
 test('time-independent test', async () => {
   const mockDate = new Date('2024-01-01T00:00:00Z');
   jest.useFakeTimers().setSystemTime(mockDate);
-  
+
   const result = await timeBasedOperation();
-  
+
   expect(result.timestamp).toBe(mockDate.toISOString());
-  
+
   jest.useRealTimers();
 });
 ```
@@ -665,9 +675,10 @@ test('time-independent test', async () => {
 ---
 
 **テスト戦略チェックリスト:**
+
 - [ ] 全テストタイプが適切に設計されている
 - [ ] カバレッジ目標が設定されている
-- [ ] CI/CDパイプラインが構築されている  
+- [ ] CI/CDパイプラインが構築されている
 - [ ] テストデータ管理が自動化されている
 - [ ] モック戦略が明確に定義されている
 - [ ] パフォーマンス監視が設定されている
