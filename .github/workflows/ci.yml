@@ -7,8 +7,8 @@ on:
     branches: [ main ]
 
 jobs:
-  # ドキュメント・設定ファイル検証
-  validate-docs:
+  # Lint チェック（ドキュメント・設定ファイル検証）
+  lint-check:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
@@ -56,8 +56,8 @@ jobs:
           done
           echo "✅ All YAML files are valid"
 
-  # プロジェクト構造検証
-  validate-structure:
+  # Type チェック（プロジェクト構造検証）
+  type-check:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
@@ -87,8 +87,8 @@ jobs:
           
           echo "✅ Project structure is valid"
 
-  # セキュリティ基本チェック
-  security-check:
+  # Unit Tests（セキュリティ基本チェック）
+  unit-tests:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
@@ -113,9 +113,9 @@ jobs:
 
   # 統合チェック（全て成功時のみ）
   integration-check:
-    needs: [validate-docs, validate-structure, security-check]
+    needs: [lint-check, type-check, unit-tests]
     runs-on: ubuntu-latest
-    if: always() && needs.validate-docs.result == 'success' && needs.validate-structure.result == 'success' && needs.security-check.result == 'success'
+    if: always() && needs.lint-check.result == 'success' && needs.type-check.result == 'success' && needs.unit-tests.result == 'success'
     steps:
       - name: Integration success
         run: |
@@ -126,16 +126,16 @@ jobs:
 
   # 通知（結果に関係なく実行）
   notify-results:
-    needs: [validate-docs, validate-structure, security-check, integration-check]
+    needs: [lint-check, type-check, unit-tests, integration-check]
     runs-on: ubuntu-latest
     if: always()
     steps:
       - name: Notify results
         run: |
           echo "📊 CI Pipeline Results:"
-          echo "Docs validation: ${{ needs.validate-docs.result }}"
-          echo "Structure validation: ${{ needs.validate-structure.result }}"
-          echo "Security check: ${{ needs.security-check.result }}"
+          echo "Lint check: ${{ needs.lint-check.result }}"
+          echo "Type check: ${{ needs.type-check.result }}"
+          echo "Unit tests: ${{ needs.unit-tests.result }}"
           echo "Integration check: ${{ needs.integration-check.result }}"
           
           if [[ "${{ needs.integration-check.result }}" == "success" ]]; then
