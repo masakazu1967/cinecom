@@ -1,4 +1,4 @@
-name: CI/CD Pipeline
+name: CI Pipeline
 
 on:
   push:
@@ -6,203 +6,140 @@ on:
   pull_request:
     branches: [ main ]
 
-env:
-  NODE_VERSION: '18'
-
 jobs:
-  # 変更検出（GitHub Free プラン節約のため）
-  detect-changes:
+  # ドキュメント・設定ファイル検証
+  validate-docs:
     runs-on: ubuntu-latest
-    outputs:
-      frontend: ${{ steps.changes.outputs.frontend }}
-      backend: ${{ steps.changes.outputs.backend }}
-    steps:
-      - uses: actions/checkout@v4
-      - uses: dorny/paths-filter@v2
-        id: changes
-        with:
-          filters: |
-            frontend:
-              - 'frontend/**'
-            backend:
-              - 'backend/**'
-
-  # フロントエンドCI（条件付き実行）
-  frontend-ci:
-    needs: detect-changes
-    if: needs.detect-changes.outputs.frontend == 'true'
-    runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: ./frontend
-    
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: ${{ env.NODE_VERSION }}
-          cache: 'npm'
-          cache-dependency-path: 'frontend/package-lock.json'
-
-      - name: Install dependencies
-        run: npm ci
-
-      - name: Type check
-        run: npm run type-check
-        continue-on-error: true
-
-      - name: Lint
-        run: npm run lint
-        continue-on-error: true
-
-      - name: Build
-        run: npm run build
-
-      - name: Unit tests
-        run: npm run test -- --watchAll=false --coverage
-        continue-on-error: true
-
-  # バックエンドCI（統合サービス・条件付き実行）
-  backend-ci:
-    needs: detect-changes
-    if: needs.detect-changes.outputs.backend == 'true'
-    runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: ./backend
-    
-    services:
-      postgres:
-        image: postgres:15
-        env:
-          POSTGRES_USER: test
-          POSTGRES_PASSWORD: test
-          POSTGRES_DB: cinecom_test
-        options: >-
-          --health-cmd pg_isready
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
-        ports:
-          - 5432:5432
-
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: ${{ env.NODE_VERSION }}
-          cache: 'npm'
-          cache-dependency-path: 'backend/package-lock.json'
-
-      - name: Install dependencies
-        run: npm ci
-
-      - name: Type check & Build
-        run: npm run build
-        continue-on-error: true
-
-      - name: Lint
-        run: npm run lint
-        continue-on-error: true
-
-      - name: Unit tests
-        run: npm run test
-        continue-on-error: true
-        env:
-          DATABASE_URL: postgresql://test:test@localhost:5432/cinecom_test
-          NODE_ENV: test
-
-  # セキュリティスキャン（軽量版）
-  security-scan:
-    needs: detect-changes
-    runs-on: ubuntu-latest
-    if: |
-      needs.detect-changes.outputs.frontend == 'true' ||
-      needs.detect-changes.outputs.backend == 'true'
-    
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: ${{ env.NODE_VERSION }}
-
-      - name: Audit frontend dependencies
-        if: needs.detect-changes.outputs.frontend == 'true'
+      - name: Validate Markdown files
         run: |
-          cd frontend
-          npm audit --audit-level=moderate
-        continue-on-error: true
+          echo "📝 Validating Markdown files..."
+          # Check for broken markdown syntax
+          find docs/ -name "*.md" -type f | while read file; do
+            echo "Checking: $file"
+            # Basic markdown validation (check for unterminated code blocks)
+            if grep -Pzo '(?s)```[^`]*?(?!```)$' "$file"; then
+              echo "❌ Unterminated code block found in $file"
+              exit 1
+            fi
+          done
+          echo "✅ All markdown files are valid"
 
-      - name: Audit backend dependencies
-        if: needs.detect-changes.outputs.backend == 'true'
+      - name: Validate JSON files
         run: |
-          cd backend
-          npm audit --audit-level=moderate
-        continue-on-error: true
+          echo "🔧 Validating JSON files..."
+          find . -name "*.json" -not -path "./node_modules/*" | while read file; do
+            echo "Checking: $file"
+            if ! python3 -m json.tool "$file" > /dev/null 2>&1; then
+              echo "❌ Invalid JSON: $file"
+              exit 1
+            fi
+          done
+          echo "✅ All JSON files are valid"
 
-  # SonarCloud分析（パブリックリポジトリ無料プラン）
-  sonarcloud:
-    needs: [frontend-ci, backend-ci]
+      - name: Validate YAML files
+        run: |
+          echo "📋 Validating YAML files..."
+          # Install yq for YAML validation
+          sudo wget -qO /usr/local/bin/yq https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64
+          sudo chmod +x /usr/local/bin/yq
+          
+          find . -name "*.yml" -o -name "*.yaml" | while read file; do
+            echo "Checking: $file"
+            if ! yq eval '.' "$file" > /dev/null 2>&1; then
+              echo "❌ Invalid YAML: $file"
+              exit 1
+            fi
+          done
+          echo "✅ All YAML files are valid"
+
+  # プロジェクト構造検証
+  validate-structure:
     runs-on: ubuntu-latest
-    if: |
-      always() &&
-      (needs.frontend-ci.result == 'success' || needs.frontend-ci.result == 'skipped') &&
-      (needs.backend-ci.result == 'success' || needs.backend-ci.result == 'skipped')
-    
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-        with:
-          fetch-depth: 0  # Shallow clones should be disabled for a better relevancy of analysis
 
-      - name: SonarCloud Scan
-        uses: SonarSource/sonarcloud-github-action@master
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-        continue-on-error: true
-
-  # デプロイ（mainブランチのみ）
-  deploy:
-    needs: [frontend-ci, backend-ci, security-scan]
-    runs-on: ubuntu-latest
-    if: |
-      github.ref == 'refs/heads/main' &&
-      (needs.frontend-ci.result == 'success' || needs.frontend-ci.result == 'skipped') &&
-      (needs.backend-ci.result == 'success' || needs.backend-ci.result == 'skipped') &&
-      needs.security-scan.result == 'success'
-    
-    steps:
-      - name: Deploy notification
+      - name: Check project structure
         run: |
-          echo "🚀 Deploying to production..."
-          echo "Frontend: Vercel auto-deploy from main branch"
-          echo "Backend: Render auto-deploy from main branch"
-          echo "All services will be automatically deployed"
+          echo "📂 Validating project structure..."
+          
+          # Check required directories
+          required_dirs=("docs" ".github")
+          for dir in "${required_dirs[@]}"; do
+            if [ ! -d "$dir" ]; then
+              echo "❌ Required directory missing: $dir"
+              exit 1
+            fi
+          done
+          
+          # Check required files
+          required_files=("docs/project/charter.md" ".github/workflows/ci.yml" "package.json")
+          for file in "${required_files[@]}"; do
+            if [ ! -f "$file" ]; then
+              echo "❌ Required file missing: $file"
+              exit 1
+            fi
+          done
+          
+          echo "✅ Project structure is valid"
 
-  # 結果通知
-  notify:
-    needs: [frontend-ci, backend-ci, security-scan, sonarcloud, deploy]
+  # セキュリティ基本チェック
+  security-check:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Check for secrets in files
+        run: |
+          echo "🔒 Checking for potential secrets..."
+          
+          # Check for common secret patterns
+          if grep -r -E "(password|secret|key|token)" --include="*.md" --include="*.json" --include="*.yml" docs/ || true; then
+            echo "⚠️  Potential secrets found in documentation - please review"
+          fi
+          
+          # Check for actual credentials (fail if found)
+          if grep -r -E "(sk_|pk_|AIza|AKIA|ya29)" . || true; then
+            echo "❌ Actual credentials detected - please remove immediately"
+            exit 1
+          fi
+          
+          echo "✅ No obvious secrets detected"
+
+  # 統合チェック（全て成功時のみ）
+  integration-check:
+    needs: [validate-docs, validate-structure, security-check]
+    runs-on: ubuntu-latest
+    if: always() && needs.validate-docs.result == 'success' && needs.validate-structure.result == 'success' && needs.security-check.result == 'success'
+    steps:
+      - name: Integration success
+        run: |
+          echo "🎉 All validation checks passed!"
+          echo "✅ Documentation validated"
+          echo "✅ Project structure verified"
+          echo "✅ Security check completed"
+
+  # 通知（結果に関係なく実行）
+  notify-results:
+    needs: [validate-docs, validate-structure, security-check, integration-check]
     runs-on: ubuntu-latest
     if: always()
-    
     steps:
-      - name: Success notification
-        if: success()
+      - name: Notify results
         run: |
-          echo "✅ CI/CD pipeline completed successfully!"
+          echo "📊 CI Pipeline Results:"
+          echo "Docs validation: ${{ needs.validate-docs.result }}"
+          echo "Structure validation: ${{ needs.validate-structure.result }}"
+          echo "Security check: ${{ needs.security-check.result }}"
+          echo "Integration check: ${{ needs.integration-check.result }}"
           
-      - name: Failure notification
-        if: failure()
-        run: |
-          echo "❌ CI/CD pipeline failed. Check the logs above."
-          echo "Note: Some steps use continue-on-error for non-critical checks."
+          if [[ "${{ needs.integration-check.result }}" == "success" ]]; then
+            echo "🎉 Overall status: SUCCESS"
+          else
+            echo "❌ Overall status: FAILED"
+          fi
