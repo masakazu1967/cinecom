@@ -682,6 +682,9 @@ const results = await movieService.search({
 - `ValidationError` - データが無効な場合
 - `ConflictError` - 映画が既に存在する場合
 
+```
+<!-- markdownlint-enable MD040 -->
+
 ## 8. テスト規約
 
 ### 8.1 テストファイル構成
