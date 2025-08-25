@@ -99,6 +99,64 @@ CI実行設定:
 
 **注意**: GitHub Flowではmainブランチがプロダクションブランチとなるため、developブランチは使用しません。
 
+### feature/*ブランチ保護（推奨）
+
+feature/*ブランチでも基本的な品質を維持するため、軽量な保護設定を推奨:
+
+1. **Settings** → **Branches** → **Add rule** をクリック
+2. **Branch name pattern**: `feature/*`
+3. 以下のオプションを有効化:
+
+```yaml
+feature/*ブランチ保護設定:
+  ❌ Require a pull request before merging
+    理由: featureブランチは作業用のため、直接push可能
+  
+  ✅ Require status checks to pass（オプション）
+    推奨ステータスチェック:
+      - lint-check        # 軽量なlintチェック
+      - type-check         # TypeScriptチェック
+      - unit-tests         # ユニットテスト
+    
+  ❌ Require signed commits  # 個人開発では不要
+  ❌ Require linear history  # featureブランチでは柔軟性重視
+
+利点:
+  - 作業中でも基本品質を維持
+  - 早期のバグ発見・修正
+  - mainブランチへのマージ時の問題削減
+  - GitHub Actions実行時間の最適化（軽量チェックのみ）
+```
+
+### hotfix/*ブランチ保護（推奨）
+
+本番環境の緊急修正用hotfix/*ブランチの保護設定:
+
+1. **Settings** → **Branches** → **Add rule** をクリック  
+2. **Branch name pattern**: `hotfix/*`
+3. 以下のオプションを有効化:
+
+```yaml
+hotfix/*ブランチ保護設定:
+  ✅ Require a pull request before merging
+    理由: 緊急修正でも品質管理は必要
+    承認者数: 0（単一アカウントのため）
+  
+  ✅ Require status checks to pass  # 緊急時でも最低限の品質保証
+    必須ステータスチェック:
+      - critical-tests     # 重要な機能テスト
+      - security-scan      # セキュリティ脆弱性チェック
+      - lint-check         # 基本的なコード品質
+    
+  ❌ Require signed commits  # 個人開発では不要
+  ✅ Require linear history  # 緊急修正の履歴を明確に
+
+特徴:
+  - 緊急修正でも最低限の品質保証
+  - mainブランチより軽量だが重要なチェックは実施
+  - PRによる変更履歴の明確化
+```
+
 ## 2. GitHub Projects設定（カンバンボード）
 
 ### プロジェクト作成
@@ -412,28 +470,41 @@ updates:
 ### 設定確認チェックリスト
 
 ```yaml
-検証項目:
+検証項目（単一アカウント・AI協調開発用）:
   ブランチ保護:
     - [ ] mainブランチに直接pushできない
     - [ ] PRなしでマージできない
-    - [ ] 必須レビュアーの承認が必要
-    - [ ] CIチェックが必須
-
-  Projects:
-    - [ ] カンバンボードが表示される
-    - [ ] Issue作成時に自動でBacklogに追加
-    - [ ] PR作成時にIn Reviewに移動
-    - [ ] PRマージ時にDoneに移動
+    - [ ] 必須ステータスチェック（CI）が設定されている
+    - [ ] Linear historyが有効になっている
+    - [ ] 承認者数が0に設定されている（自己承認不可のため）
 
   CI/CD:
-    - [ ] PRでCIが実行される
-    - [ ] mainブランチでCDが実行される
-    - [ ] テストが失敗するとマージブロック
+    - [ ] feature/*ブランチでCIが実行される
+    - [ ] PRでフルCIが実行される（lint, test, security scan）
+    - [ ] mainブランチマージ時にCDが実行される
+    - [ ] SonarCloud品質ゲートが動作する
+    - [ ] テスト失敗時にマージがブロックされる
 
-  セキュリティ:
-    - [ ] シークレットスキャンが動作
-    - [ ] Dependabotアラートが表示
-    - [ ] CodeQLスキャンが実行
+  セキュリティ（Advanced Security）:
+    - [ ] Dependency graphが有効
+    - [ ] Dependabot alertsが有効
+    - [ ] Dependabot security updatesが有効
+    - [ ] Code scanning (CodeQL)がDefault設定で動作
+    - [ ] Secret scanningが動作（パブリックリポジトリでは自動）
+    - [ ] .github/dependabot.ymlが正しく設定されている
+
+  GitHub Projects:
+    - [ ] Cinecom Development Boardが作成されている
+    - [ ] 基本カラム（Backlog, Ready, In Progress, In Review, Testing, Done）が設定されている
+    - [ ] Agent, Priority, Componentフィールドが設定されている
+    - [ ] Item added to project → Backlog自動化が動作
+    - [ ] Pull request merged → Done自動化が動作
+
+  エージェント協調:
+    - [ ] .github/CODEOWNERSがドキュメント参照用として存在
+    - [ ] .github/pull_request_template.mdが設定されている
+    - [ ] Issue templateが設定されている
+    - [ ] ブランチ命名規則（feature/agent-{role}-{task}）が明確
 ```
 
 ## トラブルシューティング
@@ -441,22 +512,38 @@ updates:
 ### よくある問題と解決方法
 
 ```yaml
-問題解決集:
+問題解決集（単一アカウント・AI協調開発用）:
   CIが実行されない:
-    原因: "Workflow permissions不足"
+    原因: "GitHub Actions permissions不足"
     解決: "Settings → Actions → General → Workflow permissions を Read and write に変更"
 
-  CODEOWNERSが動作しない:
-    原因: "ファイルパスが間違っている"
-    解決: "リポジトリルートに配置、パス記法を確認"
+  ブランチ保護で承認が求められる:
+    原因: "Require approvals設定が有効になっている"
+    解決: "単一アカウントでは自己承認不可のため、承認者数を0に設定"
+
+  CODEOWNERSによる自動レビュー割り当てが動作しない:
+    原因: "単一アカウントではCODEOWNERS機能は無効"
+    解決: "これは正常動作。CODEOWNERSはドキュメント参照用のみ"
+
+  SonarCloud連携エラー:
+    原因: "SONAR_TOKEN未設定またはプロジェクト設定不備"
+    解決: "Repository Secretsでトークン確認、SonarCloud側でプロジェクト作成"
 
   Dependabotが動作しない:
-    原因: "設定ファイルの構文エラー"
-    解決: ".github/dependabot.yml の YAML構文を確認"
+    原因: ".github/dependabot.yml構文エラー"
+    解決: "YAML構文確認、package-ecosystemとdirectoryパス確認"
 
-  Projectsに自動追加されない:
-    原因: "Workflow automationが無効"
-    解決: "Project設定でWorkflow automationを有効化"
+  GitHub Projectsに自動追加されない:
+    原因: "Project Workflow automation未設定"
+    解決: "Project設定 → Workflows → Default workflowsを有効化"
+
+  Secret scanningを無効化したい:
+    原因: "パブリックリポジトリでは自動有効"
+    解決: "セキュリティ上、無効化は非推奨。必要に応じて.gitignoreで機密ファイル除外"
+
+  エージェント識別ができない:
+    原因: "ブランチ命名規則またはコミットメッセージが不統一"
+    解決: "feature/agent-{role}-{task}形式の徹底、コミットメッセージでエージェント明記"
 ```
 
 ---
