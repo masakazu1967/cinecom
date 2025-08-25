@@ -639,6 +639,8 @@ function calculateAverageRating(
 
 ### 7.2 README/ドキュメント
 
+<!-- markdownlint-disable MD040 -->
+
 ```markdown
 # MovieService
 
