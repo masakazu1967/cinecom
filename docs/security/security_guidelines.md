@@ -188,7 +188,7 @@ export class JwtService {
 
   constructor() {
     this.secret = process.env.JWT_SECRET;
-    this.expiresIn = process.env.JWT_EXPIRES_IN || '15m';
+    this.expiresIn = process.env.JWT_EXPIRES_IN || '1h';
     
     if (!this.secret || this.secret.length < 32) {
       throw new Error('JWT_SECRET must be at least 32 characters long');
