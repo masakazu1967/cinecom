@@ -495,7 +495,7 @@ PATCH (x.x.1):
 
 自動タグ作成:
   # package.jsonのversion更新後
-  npm version major|minor|patch
+  pnpm version major|minor|patch
   git push origin main --tags
 ```
 

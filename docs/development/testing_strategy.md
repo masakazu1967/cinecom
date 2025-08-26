@@ -606,7 +606,7 @@ module.exports = {
 
 ## 8. テスト実行コマンド
 
-### 8.1 npm scripts
+### 8.1 pnpm scripts
 
 ```json
 {
@@ -672,6 +672,157 @@ test('time-independent test', async () => {
 });
 ```
 
+## 10. テストファイル構成
+
+### 10.1 ファイル構造
+
+```bash
+src/
+├── services/
+│   ├── MovieService.ts
+│   └── MovieService.spec.ts  # 単体テスト
+├── controllers/
+│   ├── MoviesController.ts
+│   └── MoviesController.spec.ts
+└── __tests__/
+    ├── integration/
+    │   └── movies.integration.spec.ts  # 統合テスト
+    └── e2e/
+        └── movies.e2e.spec.ts  # E2Eテスト
+```
+
+### 10.2 テストケース記述規約
+
+```typescript
+describe('MovieService', () => {
+  let service: MovieService;
+  let repository: MockRepository<Movie>;
+
+  beforeEach(async () => {
+    const module = await Test.createTestingModule({
+      providers: [
+        MovieService,
+        {
+          provide: getRepositoryToken(Movie),
+          useValue: createMockRepository()
+        }
+      ]
+    }).compile();
+
+    service = module.get<MovieService>(MovieService);
+    repository = module.get(getRepositoryToken(Movie));
+  });
+
+  describe('create', () => {
+    it('should create a movie successfully', async () => {
+      // Arrange
+      const createDto: CreateMovieDto = {
+        title: 'Test Movie',
+        description: 'A test movie',
+        genreIds: ['genre-1']
+      };
+      const expectedMovie = { id: 'movie-1', ...createDto };
+      repository.save.mockResolvedValue(expectedMovie);
+
+      // Act
+      const result = await service.create(createDto);
+
+      // Assert
+      expect(result).toEqual(expectedMovie);
+      expect(repository.save).toHaveBeenCalledWith(
+        expect.objectContaining(createDto)
+      );
+    });
+
+    it('should throw ValidationError for invalid data', async () => {
+      // Arrange
+      const invalidDto = { title: '' } as CreateMovieDto;
+
+      // Act & Assert
+      await expect(service.create(invalidDto))
+        .rejects
+        .toThrow(ValidationError);
+    });
+  });
+
+  describe('findById', () => {
+    it('should return movie when found', async () => {
+      // Arrange
+      const movieId = 'movie-1';
+      const expectedMovie = { id: movieId, title: 'Test Movie' };
+      repository.findOne.mockResolvedValue(expectedMovie);
+
+      // Act
+      const result = await service.findById(movieId);
+
+      // Assert
+      expect(result).toEqual(expectedMovie);
+      expect(repository.findOne).toHaveBeenCalledWith({
+        where: { id: movieId }
+      });
+    });
+
+    it('should throw NotFoundError when movie not found', async () => {
+      // Arrange
+      const movieId = 'non-existent-id';
+      repository.findOne.mockResolvedValue(null);
+
+      // Act & Assert
+      await expect(service.findById(movieId))
+        .rejects
+        .toThrow(NotFoundError);
+    });
+  });
+});
+```
+
+### 10.3 テストヘルパー
+
+```typescript
+// test-helpers/mock-repository.ts
+export const createMockRepository = () => ({
+  save: jest.fn(),
+  findOne: jest.fn(),
+  find: jest.fn(),
+  delete: jest.fn(),
+  createQueryBuilder: jest.fn(() => ({
+    where: jest.fn().mockReturnThis(),
+    andWhere: jest.fn().mockReturnThis(),
+    leftJoinAndSelect: jest.fn().mockReturnThis(),
+    skip: jest.fn().mockReturnThis(),
+    take: jest.fn().mockReturnThis(),
+    getManyAndCount: jest.fn(),
+    getMany: jest.fn(),
+  })),
+});
+
+// test-helpers/test-data-factory.ts
+export class TestDataFactory {
+  static createMovie(overrides?: Partial<Movie>): Movie {
+    return {
+      id: 'movie-1',
+      title: 'Test Movie',
+      description: 'A test movie description',
+      releaseDate: new Date('2023-01-01'),
+      createdAt: new Date(),
+      updatedAt: new Date(),
+      ...overrides,
+    };
+  }
+
+  static createUser(overrides?: Partial<User>): User {
+    return {
+      id: 'user-1',
+      email: 'test@example.com',
+      displayName: 'Test User',
+      createdAt: new Date(),
+      updatedAt: new Date(),
+      ...overrides,
+    };
+  }
+}
+```
+
 ---
 
 **テスト戦略チェックリスト:**
@@ -682,3 +833,5 @@ test('time-independent test', async () => {
 - [ ] テストデータ管理が自動化されている
 - [ ] モック戦略が明確に定義されている
 - [ ] パフォーマンス監視が設定されている
+- [ ] テストファイル構成が統一されている
+- [ ] テストケース記述規約が守られている

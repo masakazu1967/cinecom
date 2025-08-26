@@ -70,10 +70,13 @@ interface IUserRepository { ... } // 悪い
 ### 2.2 ファイル・ディレクトリ命名
 
 ```bash
-// ファイル名: kebab-case
-user-service.ts
-movie-details.component.tsx
-api-client.util.ts
+// ファイル名: 定義する名前と同じ（PascalCase）
+UserService.ts        // class UserService
+MovieDetails.tsx      // MovieDetails コンポーネント
+ApiClient.ts          // class ApiClient
+ApiTypes.ts           // type ApiTypes やその他のtype定義
+ValidationUtils.ts    // validateEmail などのユーティリティ関数
+AppConfig.ts          // APP_CONFIG などの定数
 
 // ディレクトリ名: kebab-case
 src/
@@ -82,6 +85,25 @@ src/
 ├── utils/
 ├── types/
 └── test-helpers/
+
+// ファイル構成例:
+src/
+├── services/
+│   ├── UserService.ts        // class UserService
+│   ├── MovieService.ts       // class MovieService
+│   └── ApiClient.ts          // class ApiClient
+├── components/
+│   ├── MovieCard.tsx         // MovieCard コンポーネント
+│   └── UserProfile.tsx       // UserProfile コンポーネント
+├── types/
+│   ├── ApiTypes.ts           // type ApiResponse, ApiError など
+│   └── UserTypes.ts          // type User, UserRole など
+├── utils/
+│   ├── ValidationUtils.ts    // validateEmail, validatePassword など
+│   └── DateUtils.ts          // formatDate, parseDate など
+└── constants/
+    ├── AppConfig.ts          // APP_CONFIG, API_BASE_URL など
+    └── ErrorMessages.ts      // ERROR_MESSAGES など
 ```
 
 ### 2.3 import/export 規約
@@ -234,36 +256,152 @@ function createUser(params: CreateUserParams): Promise<User> { ... }
 
 ### 2.6 エラーハンドリング
 
+#### エラーハンドリング戦略（全層統一）
+
+```yaml
+基本方針:
+  全層で例外による一貫したエラーハンドリング
+  Result型は使用せず、シンプルで標準的なアプローチ
+
+ドメイン層:
+  戦略: 即座例外発生（Fail Fast）
+  対象: ビジネスルール違反・不変条件違反
+  目的: 無効な状態での動作継続を防ぐ
+  実装: DomainError でthrow
+
+アプリケーション層:
+  戦略: 例外ハンドリング
+  対象: 入力検証・ユースケース実行エラー
+  目的: ビジネス例外の適切な変換・伝播
+  実装: ApplicationError でthrow
+
+インフラ層:
+  戦略: 例外ハンドリング
+  対象: データアクセス・ネットワークエラー
+  目的: 技術的エラーの適切な変換
+  実装: InfrastructureError でthrow
+
+プレゼンテーション層:
+  戦略: HTTPステータス変換
+  対象: 全層からのエラー
+  目的: 適切なHTTPレスポンス
+  実装: Exception Filter による変換
+```
+
 ```typescript
-// カスタムエラークラス
-class ValidationError extends Error {
+// カスタムエラークラス（層別に定義）
+
+// ドメイン層のエラー（ビジネスルール違反・不変条件違反）
+class DomainError extends Error {
+  constructor(message: string, public code?: string) {
+    super(message);
+    this.name = this.constructor.name;
+  }
+}
+
+// アプリケーション層のエラー（ユースケース実行・入力検証）
+class ApplicationError extends Error {
+  constructor(message: string, public code?: string, public details?: any) {
+    super(message);
+    this.name = this.constructor.name;
+  }
+}
+
+class ValidationError extends ApplicationError {
+  constructor(message: string, public field: string, public code: string) {
+    super(message, code);
+    // this.name の設定は不要（親クラスで自動設定）
+  }
+}
+
+// インフラ層のエラー（データアクセス・外部API）
+class InfrastructureError extends Error {
+  constructor(message: string, public originalError?: Error) {
+    super(message);
+    this.name = this.constructor.name;
+    if (originalError) {
+      this.stack = originalError.stack;
+    }
+  }
+}
+
+class NotFoundError extends InfrastructureError {
+  constructor(message: string) {
+    super(message);
+    // this.name の設定は不要（親クラスで自動設定）
+  }
+}
+
+class ConflictError extends InfrastructureError {
+  constructor(message: string, public conflictType: 'UNIQUE' | 'FOREIGN_KEY' | 'CHECK' = 'UNIQUE') {
+    super(message);
+    // this.name の設定は不要（親クラスで自動設定）
+  }
+}
+
+class DatabaseConstraintError extends InfrastructureError {
   constructor(
-    message: string,
-    public field: string,
-    public code: string
+    message: string, 
+    public constraintName: string,
+    public constraintType: 'UNIQUE' | 'FOREIGN_KEY' | 'CHECK' | 'NOT_NULL'
   ) {
     super(message);
-    this.name = 'ValidationError';
+    // this.name の設定は不要（親クラスで自動設定）
   }
 }
 
-// Result型パターン
-type Result<T, E = Error> =
-  | { success: true; data: T }
-  | { success: false; error: E };
-
-// 使用例
-async function validateUser(data: unknown): Promise<Result<User, ValidationError>> {
+// アプリケーション層での例外ハンドリング
+async function validateUserInApplicationLayer(data: unknown): Promise<User> {
   try {
+    // 外部ライブラリ（Joi等）のバリデーション
     const user = await userSchema.validateAsync(data);
-    return { success: true, data: user };
+    return user;
   } catch (error) {
-    return {
-      success: false,
-      error: new ValidationError('Invalid user data', 'user', 'VALIDATION_FAILED')
-    };
+    // ライブラリエラーをアプリケーションエラーに変換
+    if (error.isJoi) {
+      throw new ValidationError(
+        'Invalid user data', 
+        error.details[0].path[0], 
+        'VALIDATION_FAILED'
+      );
+    }
+    throw new ApplicationError('User validation failed', 'VALIDATION_ERROR');
   }
 }
+
+// リポジトリでの動的エラーハンドラー使用例
+@Injectable()
+export class UserRepository {
+  constructor(
+    @InjectRepository(User) private repository: Repository<User>,
+    private errorHandler: DatabaseErrorHandlerService
+  ) {}
+
+  async save(user: User): Promise<User> {
+    try {
+      return await this.repository.save(user);
+    } catch (error) {
+      if (error instanceof QueryFailedError) {
+        // 動的に注入されたハンドラーを使用
+        this.errorHandler.handleError(error);
+      }
+      throw new InfrastructureError('Database operation failed', error);
+    }
+  }
+
+  async findById(id: string): Promise<User | null> {
+    try {
+      return await this.repository.findOne({ where: { id } });
+    } catch (error) {
+      if (error instanceof QueryFailedError) {
+        this.errorHandler.handleError(error);
+      }
+      throw new InfrastructureError('Failed to fetch user', error);
+    }
+  }
+}
+
+DBMS固有エラーハンドラーやドメインオブジェクト設計の詳細については [ドメイン設計](../architecture/domain_design.md) を参照してください。
 ```
 
 ### 2.7 非同期処理
@@ -300,18 +438,18 @@ const fetchUserData = async (userId: string) => {
 ### 3.1 コンポーネント定義
 
 ```tsx
-// 関数コンポーネント（Arrow function）
+// 関数コンポーネント（React 18+推奨記法）
 interface MovieCardProps {
   movie: Movie;
   onRate?: (rating: number) => void;
   className?: string;
 }
 
-export const MovieCard: React.FC<MovieCardProps> = ({
+export const MovieCard = ({
   movie,
   onRate,
   className = ''
-}) => {
+}: MovieCardProps) => {
   return (
     <div className={`movie-card ${className}`}>
       <h2>{movie.title}</h2>
@@ -324,6 +462,25 @@ export const MovieCard: React.FC<MovieCardProps> = ({
     </div>
   );
 };
+
+// または型推論を活用した記法
+export function MovieCard({
+  movie,
+  onRate,
+  className = ''
+}: MovieCardProps) {
+  return (
+    <div className={`movie-card ${className}`}>
+      <h2>{movie.title}</h2>
+      {onRate && (
+        <StarRating
+          value={movie.rating}
+          onChange={onRate}
+        />
+      )}
+    </div>
+  );
+}
 ```
 
 ### 3.2 Hooks使用規約
@@ -391,14 +548,34 @@ export class MoviesController {
   async create(
     @Body() createMovieDto: CreateMovieDto
   ): Promise<Movie> {
-    return this.moviesService.create(createMovieDto);
+    // プレゼンテーション層のDTOをアプリケーション層のコマンドに変換
+    const createMovieCommand = {
+      title: createMovieDto.title,
+      description: createMovieDto.description,
+      releaseDate: new Date(createMovieDto.releaseDate),
+      genreIds: createMovieDto.genreIds
+    };
+    
+    // アプリケーション層からのエラーをそのまま受け取り
+    // Exception Filterで適切なHTTPステータスに変換される
+    return this.moviesService.create(createMovieCommand);
   }
 }
 ```
 
+Exception Filter等のインフラ設定については [インフラ設定ガイド](../operations/infrastructure_setup.md) を参照してください。
+
 ### 4.2 サービス層
 
 ```typescript
+// アプリケーション層のコマンド型定義
+interface CreateMovieCommand {
+  title: string;
+  description?: string;
+  releaseDate: Date;
+  genreIds: string[];
+}
+
 @Injectable()
 export class MoviesService {
   constructor(
@@ -406,6 +583,46 @@ export class MoviesService {
     private readonly movieRepository: Repository<Movie>,
     private readonly cacheService: CacheService
   ) {}
+
+  // アプリケーション層でコマンドを受け取る
+  async create(command: CreateMovieCommand): Promise<Movie> {
+    // 入力検証（アプリケーション層の責務）
+    if (!command.title?.trim()) {
+      throw new ValidationError('Title is required', 'title', 'REQUIRED');
+    }
+
+    if (!command.genreIds?.length) {
+      throw new ValidationError('At least one genre is required', 'genreIds', 'REQUIRED');
+    }
+
+    try {
+      // ドメインオブジェクト作成（ドメイン層で不変条件チェック）
+      // DomainErrorが発生した場合はそのまま伝播
+      const movie = new Movie({
+        title: command.title,
+        description: command.description,
+        releaseDate: command.releaseDate,
+        genreIds: command.genreIds
+      });
+
+      // インフラ層への永続化
+      // InfrastructureErrorが発生した場合はそのまま伝播
+      return await this.movieRepository.save(movie);
+      
+    } catch (error) {
+      // ドメインエラーやインフラエラーはプレゼンテーション層に直接伝播
+      if (error instanceof DomainError || error instanceof InfrastructureError) {
+        throw error;
+      }
+      
+      // 予期しないエラーのみアプリケーションエラーに変換
+      throw new ApplicationError(
+        'Failed to create movie due to unexpected error', 
+        'CREATE_FAILED', 
+        { originalError: error.message }
+      );
+    }
+  }
 
   async findAll(query: GetMoviesQueryDto): Promise<PaginatedResponse<Movie>> {
     const cacheKey = `movies:${JSON.stringify(query)}`;
@@ -687,166 +904,12 @@ const results = await movieService.search({
 ```
 <!-- markdownlint-enable MD040 -->
 
-## 8. テスト規約
-
-### 8.1 テストファイル構成
-
-```bash
-
-src/
-├── services/
-│   ├── movie.service.ts
-│   └── movie.service.spec.ts  # 単体テスト
-├── controllers/
-│   ├── movies.controller.ts
-│   └── movies.controller.spec.ts
-└── **tests**/
-    ├── integration/
-    │   └── movies.integration.spec.ts  # 統合テスト
-    └── e2e/
-        └── movies.e2e.spec.ts  # E2Eテスト
-
+テスト規約の詳細については [テスト戦略](testing_strategy.md) を参照してください。
 ```
 
-### 8.2 テストケース記述
+セキュリティ要件については [セキュリティガイドライン](../security/security_guidelines.md) を参照してください。
 
-```typescript
-describe('MovieService', () => {
-  let service: MovieService;
-  let repository: MockRepository<Movie>;
-
-  beforeEach(async () => {
-    const module = await Test.createTestingModule({
-      providers: [
-        MovieService,
-        {
-          provide: getRepositoryToken(Movie),
-          useValue: createMockRepository()
-        }
-      ]
-    }).compile();
-
-    service = module.get<MovieService>(MovieService);
-    repository = module.get(getRepositoryToken(Movie));
-  });
-
-  describe('create', () => {
-    it('should create a movie successfully', async () => {
-      // Arrange
-      const createDto: CreateMovieDto = {
-        title: 'Test Movie',
-        description: 'A test movie',
-        genreIds: ['genre-1']
-      };
-      const expectedMovie = { id: 'movie-1', ...createDto };
-      repository.save.mockResolvedValue(expectedMovie);
-
-      // Act
-      const result = await service.create(createDto);
-
-      // Assert
-      expect(result).toEqual(expectedMovie);
-      expect(repository.save).toHaveBeenCalledWith(
-        expect.objectContaining(createDto)
-      );
-    });
-
-    it('should throw ValidationError for invalid data', async () => {
-      // Arrange
-      const invalidDto = { title: '' } as CreateMovieDto;
-
-      // Act & Assert
-      await expect(service.create(invalidDto))
-        .rejects
-        .toThrow(ValidationError);
-    });
-  });
-});
-```
-
-## 9. セキュリティ規約
-
-### 9.1 入力検証
-
-```typescript
-// バリデーション関数
-export const validateEmail = (email: string): boolean => {
-  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-  return emailRegex.test(email) && email.length <= 254;
-};
-
-// サニタイゼーション
-import DOMPurify from 'dompurify';
-
-export const sanitizeHtml = (html: string): string => {
-  return DOMPurify.sanitize(html, {
-    ALLOWED_TAGS: ['p', 'strong', 'em', 'u'],
-    ALLOWED_ATTR: []
-  });
-};
-```
-
-### 9.2 パスワード処理
-
-```typescript
-import bcrypt from 'bcrypt';
-
-// パスワードハッシュ化
-export const hashPassword = async (password: string): Promise<string> => {
-  const saltRounds = 12;
-  return bcrypt.hash(password, saltRounds);
-};
-
-// パスワード検証
-export const verifyPassword = async (
-  password: string,
-  hash: string
-): Promise<boolean> => {
-  return bcrypt.compare(password, hash);
-};
-```
-
-## 10. パフォーマンス規約
-
-### 10.1 データベースクエリ
-
-```typescript
-// 良い例: 必要なデータのみ取得
-const movies = await repository
-  .createQueryBuilder('movie')
-  .select(['movie.id', 'movie.title', 'movie.posterUrl'])
-  .where('movie.isPublished = :published', { published: true })
-  .limit(20)
-  .getMany();
-
-// 悪い例: 全データ取得
-const movies = await repository.find(); // 全カラム、全行
-```
-
-### 10.2 キャッシュ活用
-
-```typescript
-// Redis キャッシュパターン
-class MovieService {
-  async getPopularMovies(): Promise<Movie[]> {
-    const cacheKey = 'movies:popular';
-
-    // キャッシュから取得試行
-    const cached = await this.redis.get(cacheKey);
-    if (cached) {
-      return JSON.parse(cached);
-    }
-
-    // データベースから取得
-    const movies = await this.repository.findPopular();
-
-    // キャッシュに保存（TTL: 1時間）
-    await this.redis.setex(cacheKey, 3600, JSON.stringify(movies));
-
-    return movies;
-  }
-}
-```
+パフォーマンス要件については [パフォーマンス最適化ガイドライン](../operations/performance_optimization.md) を参照してください。
 
 ---
 

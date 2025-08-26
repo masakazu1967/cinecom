@@ -57,6 +57,42 @@ graph TD
   - 失敗時の早期停止
 ```
 
+### パッケージマネージャー設定
+
+#### **PNPM実行環境**
+
+```yaml
+PNPM設定:
+  バージョン: v8系（最新LTS）
+  インストール: pnpm/action-setup@v2 アクション使用
+  キャッシュ戦略: ~/.pnpm-store ディレクトリ
+  ロックファイル: pnpm-lock.yaml
+
+実行環境要件:
+  Node.js: 18以上
+  OS: ubuntu-latest（Linux）
+  権限: 読み書き権限必要
+
+セットアップ手順:
+  1. Node.jsセットアップ
+  2. pnpm/action-setup@v2でpnpmインストール
+  3. pnpm install --frozen-lockfileで依存関係インストール
+  4. 各種pnpmコマンド実行
+
+トラブルシューティング:
+  pnpmコマンド未認識:
+    - pnpm/action-setupステップが正しく実行されているか確認
+    - NODE_VERSIONとPNPM_VERSIONの設定確認
+  
+  キャッシュ問題:
+    - pnpm-lock.yamlが最新か確認
+    - pnpm store pruneでキャッシュクリア
+  
+  権限エラー:
+    - GitHub Actionsの実行権限確認
+    - secrets設定の確認
+```
+
 ### GitHub Actions ワークフロー
 
 #### **メインCI/CDワークフロー**
@@ -75,6 +111,7 @@ on:
 
 env:
   NODE_VERSION: '18'
+  PNPM_VERSION: '8'
   DOCKER_REGISTRY: 'ghcr.io'
   IMAGE_PREFIX: 'cinecom'
 
@@ -141,28 +178,33 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: ${{ matrix.node-version }}
-          cache: 'npm'
-          cache-dependency-path: '${{ matrix.service.path }}/package-lock.json'
+          cache: 'pnpm'
+          cache-dependency-path: '${{ matrix.service.path }}/pnpm-lock.yaml'
+      
+      - name: Install pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: ${{ env.PNPM_VERSION }}
       
       - name: Install dependencies
         working-directory: ${{ matrix.service.path }}
-        run: npm ci
+        run: pnpm install --frozen-lockfile
       
       - name: Run linting
         working-directory: ${{ matrix.service.path }}
-        run: npm run lint
+        run: pnpm run lint
       
       - name: Run type checking
         working-directory: ${{ matrix.service.path }}
-        run: npm run type-check
+        run: pnpm run type-check
       
       - name: Run unit tests
         working-directory: ${{ matrix.service.path }}
-        run: npm run test:unit -- --coverage
+        run: pnpm run test:unit -- --coverage
       
       - name: Run integration tests
         working-directory: ${{ matrix.service.path }}
-        run: npm run test:integration
+        run: pnpm run test:integration
         env:
           NODE_ENV: test
           DATABASE_URL: postgresql://test:test@localhost:5432/test_${{ matrix.service.name }}
@@ -187,34 +229,39 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: ${{ env.NODE_VERSION }}
-          cache: 'npm'
-          cache-dependency-path: 'frontend/package-lock.json'
+          cache: 'pnpm'
+          cache-dependency-path: 'frontend/pnpm-lock.yaml'
+      
+      - name: Install pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: ${{ env.PNPM_VERSION }}
       
       - name: Install dependencies
         working-directory: frontend
-        run: npm ci
+        run: pnpm install --frozen-lockfile
       
       - name: Run linting
         working-directory: frontend
-        run: npm run lint
+        run: pnpm run lint
       
       - name: Run type checking
         working-directory: frontend
-        run: npm run type-check
+        run: pnpm run type-check
       
       - name: Run unit tests
         working-directory: frontend
-        run: npm run test -- --coverage --watchAll=false
+        run: pnpm run test -- --coverage --watchAll=false
       
       - name: Build application
         working-directory: frontend
-        run: npm run build
+        run: pnpm run build
         env:
           NODE_ENV: production
       
       - name: Run E2E tests
         working-directory: frontend
-        run: npm run test:e2e
+        run: pnpm run test:e2e
         env:
           NODE_ENV: test
 
@@ -246,13 +293,18 @@ jobs:
         with:
           sarif_file: 'trivy-results.sarif'
       
-      - name: Run npm audit
+      - name: Install pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: ${{ env.PNPM_VERSION }}
+      
+      - name: Run pnpm audit
         run: |
           for service in services/*/; do
             if [ -f "$service/package.json" ]; then
               echo "Auditing $service"
               cd "$service"
-              npm audit --audit-level=high
+              pnpm audit --audit-level=high
               cd - > /dev/null
             fi
           done
@@ -428,7 +480,7 @@ jobs:
           
           # フロントエンド
           cd frontend
-          npx vercel --prod --token ${{ secrets.VERCEL_TOKEN }} --confirm
+          pnpx vercel --prod --token ${{ secrets.VERCEL_TOKEN }} --confirm
       
       - name: Store deployment history
         run: |
@@ -494,10 +546,24 @@ jobs:
           SUBDOMAIN=$(echo "$BRANCH_NAME" | sed 's/[^a-zA-Z0-9]/-/g' | tr '[:upper:]' '[:lower:]')
           echo "SUBDOMAIN=$SUBDOMAIN" >> $GITHUB_ENV
       
+      - name: Setup Node.js
+        if: contains(github.event.head_commit.modified, 'frontend/') || contains(github.event.head_commit.modified, 'services/')
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'pnpm'
+      
+      - name: Install pnpm
+        if: contains(github.event.head_commit.modified, 'frontend/') || contains(github.event.head_commit.modified, 'services/')
+        uses: pnpm/action-setup@v2
+        with:
+          version: ${{ env.PNPM_VERSION }}
+      
       - name: Deploy to development environment
         run: |
           echo "Deploying to $SUBDOMAIN.cinecom-dev.com"
           # 開発環境への個別デプロイ
+          # 必要に応じてビルド実行: pnpm install --frozen-lockfile && pnpm run build
           
       - name: Update PR with deployment URL
         if: github.event_name == 'pull_request'
@@ -621,8 +687,8 @@ Mock Services:
 キャッシュ戦略:
   Node.js Dependencies:
     - actions/setup-node cache
-    - ~/.npm, node_modules
-    - package-lock.json ベース
+    - ~/.pnpm-store, node_modules
+    - pnpm-lock.yaml ベース
   
   Docker Layers:
     - Docker Buildx cache
@@ -723,7 +789,7 @@ Secret Management:
   - 定期Secret ローテーション
 
 Vulnerability Scanning:
-  - Dependency scanning (npm audit)
+  - Dependency scanning (pnpm audit)
   - Container scanning (Trivy)
   - Code scanning (CodeQL)
   - Secret scanning (TruffleHog)
@@ -758,8 +824,8 @@ Access Control:
 ```yaml
 Build Failures:
   依存関係問題:
-    - package-lock.json 更新
-    - キャッシュクリア
+    - pnpm-lock.yaml 更新
+    - キャッシュクリア (pnpm store prune)
     - Node.js バージョン確認
   
   Test Failures:

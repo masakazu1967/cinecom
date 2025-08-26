@@ -299,7 +299,7 @@ Cinecomプロジェクトの個人検証・開発に必要な外部サービス�
 
 ```bash
 # Vercel CLIインストール
-npm install -g vercel
+pnpm install -g vercel
 
 # プロジェクト初期化
 cd frontend/
@@ -356,8 +356,8 @@ VERCEL_PROJECT_ID: "Project Settings → General → Project ID"
   3. サービス設定:
      Name: "cinecom-[service-name]"
      Environment: "Node"
-     Build Command: "npm install && npm run build"
-     Start Command: "npm run start:prod"
+     Build Command: "pnpm install --frozen-lockfile && pnpm run build"
+     Start Command: "pnpm run start:prod"
      Plan: "Starter ($7/月)"
   4. 環境変数設定（後述）
   5. デプロイ実行
