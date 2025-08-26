@@ -382,7 +382,7 @@ OAuth2 実装:
 
 ```yaml
 依存関係スキャン:
-  - npm audit: 毎ビルド時実行
+  - pnpm audit: 毎ビルド時実行
   - Snyk: 週次フルスキャン
   - GitHub Security Advisories: 自動通知
 

@@ -9,6 +9,7 @@ Brief description of what this PR accomplishes.
 <!-- Please describe the changes in this PR -->
 
 ### Type of Change
+
 - [ ] Bug fix (non-breaking change which fixes an issue)
 - [ ] New feature (non-breaking change which adds functionality)
 - [ ] Breaking change (fix or feature that would cause existing functionality to not work as expected)
@@ -19,9 +20,10 @@ Brief description of what this PR accomplishes.
 - [ ] Infrastructure/DevOps changes
 
 ### Components Changed
+
 - [ ] Frontend (Next.js/React)
 - [ ] Backend - User Service
-- [ ] Backend - Movie Service  
+- [ ] Backend - Movie Service
 - [ ] Backend - Actor Service
 - [ ] Backend - Scene Service
 - [ ] Backend - Review Service
@@ -41,6 +43,7 @@ Brief description of what this PR accomplishes.
 - [ ] All existing tests pass
 
 ### Test Coverage
+
 - [ ] Maintained or improved test coverage
 - [ ] Critical paths are tested
 

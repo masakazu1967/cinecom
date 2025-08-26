@@ -237,7 +237,7 @@ Test Database ← Test Application → Mock External APIs
 |------|-------|------|
 | コード品質 | SonarQube | Grade A |
 | 脆弱性 | Snyk | High以上は即修正 |
-| 依存関係 | npm audit | 定期更新 |
+| 依存関係 | pnpm audit | 定期更新 |
 
 ### 11.2 リファクタリング計画
 

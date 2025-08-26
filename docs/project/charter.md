@@ -366,7 +366,7 @@ GitHub Actionsによる変更検出ベースのCI/CD、サービス別並列ビ�
 自動品質管理:
   CI/CD Pipeline:
     - Lint, TypeScript, Test の自動実行
-    - セキュリティスキャン（npm audit）
+    - セキュリティスキャン（pnpm audit）
     - ビルド・デプロイ検証
 
   SonarCloud品質ゲート:
