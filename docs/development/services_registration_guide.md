@@ -299,7 +299,7 @@ Cinecomプロジェクトの個人検証・開発に必要な外部サービス�
 
 ```bash
 # Vercel CLIインストール
-pnpm install -g vercel
+npm install -g vercel
 
 # プロジェクト初期化
 cd frontend/
@@ -557,7 +557,7 @@ OAuth App設定:
      Organization: 自動作成またはGitHubユーザー名
      Project key: "cinecom"
      Display name: "Cinecom"
-  
+
   4. 分析方法選択:
      "With GitHub Actions" を選択（推奨）
 ```
@@ -569,7 +569,7 @@ OAuth App設定:
   1. SonarCloudが自動でGitHub Secretsを設定
   2. 以下のSecretが追加される:
      SONAR_TOKEN: SonarCloud認証トークン
-  
+
   3. ワークフローファイル例:
      .github/workflows/sonar.yml が自動作成
 ```
