@@ -107,6 +107,24 @@ export class GlobalExceptionFilter implements ExceptionFilter {
       errorResponse['stack'] = exception instanceof Error ? exception.stack : undefined;
     }
 
+    // ログレベル別エラーログ出力
+    const logger = new CustomLogger(/* ConfigService */);
+    const errorContext = { path: request.url, code, statusCode: status };
+    
+    if (exception instanceof InfrastructureError || code === 'UNKNOWN_ERROR') {
+      // FATAL: システム致命的エラー
+      logger.fatal(message, exception.stack, errorContext);
+    } else if (exception instanceof ApplicationError || exception instanceof DatabaseConstraintError) {
+      // ERROR: エラー情報、スタックトレース
+      logger.error(message, exception.stack, errorContext);
+    } else if (exception instanceof DomainError) {
+      // WARN: 警告情報（ビジネスルール違反）
+      logger.warn(message, errorContext);
+    } else if (exception instanceof ValidationError || exception instanceof NotFoundError) {
+      // INFO: アプリケーションイベント（通常の業務フロー）
+      logger.log(`User input error: ${message}`, errorContext);
+    }
+
     response.status(status).json(errorResponse);
   }
 }
@@ -376,24 +394,32 @@ export class CustomLogger implements LoggerService {
     });
   }
 
-  log(message: string, context?: string) {
-    this.logger.info(message, { context });
+  // FATAL: システム致命的エラー
+  fatal(message: string, trace?: string, context?: string) {
+    this.logger.error(`[FATAL] ${message}`, { trace, context, level: 'fatal' });
+    // 緊急通知（Slack等）のトリガーも可能
   }
 
+  // ERROR: エラー情報、スタックトレース
   error(message: string, trace?: string, context?: string) {
     this.logger.error(message, { trace, context });
   }
 
+  // WARN: 警告情報
   warn(message: string, context?: string) {
     this.logger.warn(message, { context });
   }
 
-  debug(message: string, context?: string) {
-    this.logger.debug(message, { context });
+  // INFO: アプリケーションイベント
+  log(message: string, context?: string) {
+    this.logger.info(message, { context });
   }
 
-  verbose(message: string, context?: string) {
-    this.logger.verbose(message, { context });
+  // DEBUG: 詳細な実行情報
+  debug(message: string, context?: string) {
+    if (this.config.get('NODE_ENV') === 'development') {
+      this.logger.debug(message, { context });
+    }
   }
 }
 ```
