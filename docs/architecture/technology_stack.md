@@ -189,28 +189,47 @@ OAuth2:
 
 #### **API設計**
 
-**RESTful + GraphQL (Apollo Server)**:
+**RESTful + GraphQL (段階的実装)**:
 
 ```yaml
-RESTful API:
-  用途: 基本的なCRUD操作・マイクロサービス間通信
-  実装: NestJS @Controller + DTOs
-  特徴:
+段階的実装アプローチ:
+  Phase 1 (Week 3-6): REST API基盤
+    対象: サービス間通信・基本フロントエンド連携
+    実装: NestJS @Controller + DTOs
+    優先度: 高（MVP必須機能）
+
+  Phase 2 (Week 7-9): GraphQL追加
+    対象: フロントエンド最適化・複雑クエリ
+    実装: @nestjs/graphql + Apollo Server
+    優先度: 中（ユーザー体験向上）
+
+使い分け方針:
+  内部通信（サービス間）:
+    - 技術: RESTful API
+    - 理由: シンプル・統一性・デバッグしやすさ
+    - 例: user-service ←→ movie-service
+
+  外部API（フロントエンド連携）:
+    - Phase 1: RESTful API（MVP実装）
+    - Phase 2: GraphQL追加（最適化・柔軟性向上）
+    - 理由: 必要データのみ取得・複雑クエリ対応
+
+技術仕様:
+  RESTful API:
     - HTTP標準メソッド（GET, POST, PUT, DELETE）
     - リソースベースURL設計
     - OpenAPI/Swagger自動ドキュメント生成
+    - サービス間通信の標準プロトコル
 
-GraphQL (Apollo Server):
-  用途: 複雑なデータクエリ・フロントエンド最適化
-  実装: @nestjs/graphql + Apollo Server
-  特徴:
+  GraphQL (Phase 2):
     - 単一エンドポイント
     - 必要なデータのみ取得（Over-fetching解決）
     - 型安全なスキーマファースト開発
+    - フロントエンド特化の柔軟なクエリ
 
 API ドキュメント:
   - Swagger/OpenAPI: RESTful API
-  - GraphQL Playground: GraphQL Schema
+  - GraphQL Playground: GraphQL Schema (Phase 2)
 ```
 
 #### **バリデーション**
@@ -301,10 +320,21 @@ Redis Pub/Sub:
   - Cache-aside pattern
   - TTL設定による自動期限切れ
 
-キャッシュ戦略:
-  - 頻繁に読み取りされるマスターデータ
-  - 複雑な検索結果（映画・俳優検索）
-  - ユーザーセッション情報
+キャッシュ戦略（段階的実装）:
+  Phase 1: 基本実装
+    - セッションキャッシュ（JWT blacklist等）
+    - APIレスポンスキャッシュ
+    - レート制限カウンター
+  
+  Phase 2: 多層化拡張
+    - CDNキャッシュ連携
+    - 複雑な検索結果キャッシュ
+    - Write-Through/Write-Behind実装
+  
+  Phase 3: 高度化完成
+    - 4層キャッシュシステム
+    - Refresh-Ahead戦略
+    - 自動キャッシュ無効化
 ```
 
 #### **ORM・データアクセス**

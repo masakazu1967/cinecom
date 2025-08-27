@@ -33,9 +33,9 @@ graph TD
     K -->|Yes| M[Security Scan]
     M --> N[Build Docker Images]
     N --> O{Branch?}
-    O -->|feature/*| P[Dev Deploy]
-    O -->|main| Q[Staging Deploy]
-    O -->|tag v*| R[Production Deploy]
+    O -->|feature/* PR| P[Dev Deploy]
+    O -->|main merge| Q[Staging Deploy]
+    O -->|main tag v*| R[Production Deploy]
     
     P --> S[Integration Tests]
     Q --> T[Acceptance Tests]
@@ -383,7 +383,7 @@ on:
 
 jobs:
   deploy-staging:
-    if: github.event.workflow_run.conclusion == 'success' && github.ref == 'refs/heads/main'
+    if: github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.head_branch == 'main'
     runs-on: ubuntu-latest
     environment: staging
     
@@ -420,7 +420,7 @@ jobs:
           description: "${{ matrix.service }} deployment ${{ job.status }}"
 
   deploy-frontend-staging:
-    if: github.event.workflow_run.conclusion == 'success' && github.ref == 'refs/heads/main'
+    if: github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.head_branch == 'main'
     runs-on: ubuntu-latest
     environment: staging
     
@@ -526,8 +526,8 @@ jobs:
 name: Development Deploy
 
 on:
-  push:
-    branches: ['feature/**', 'hotfix/**']
+  pull_request:
+    branches: ['main']
 
 jobs:
   deploy-dev:
@@ -566,7 +566,6 @@ jobs:
           # 必要に応じてビルド実行: pnpm install --frozen-lockfile && pnpm run build
           
       - name: Update PR with deployment URL
-        if: github.event_name == 'pull_request'
         uses: actions/github-script@v6
         with:
           script: |

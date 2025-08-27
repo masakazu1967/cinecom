@@ -64,8 +64,13 @@
 #### サービス間通信
 
 ```text
+サービス間（内部通信）: REST API
 User Service ←→ Movie Service: REST API
-Movie Service ←→ Review Service: gRPC
+Movie Service ←→ Review Service: REST API
+
+フロントエンド連携: 
+- Phase 1: REST API
+- Phase 2: GraphQL追加（最適化）
 ```
 
 ## 3. データ設計
