@@ -14,10 +14,7 @@ jobs:
   # フロントエンド Lint チェック
   frontend-lint:
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: ./frontend
-    
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -45,13 +42,13 @@ jobs:
 
       - name: Install dependencies
         run: |
-          # Install workspace dependencies from root directory  
-          pnpm install --filter @cinecom/frontend
+          # Install workspace dependencies from root directory
+          pnpm install --filter @cinecom/frontend --no-frozen-lockfile
 
       - name: Run ESLint
         run: |
           echo "🔍 Running ESLint checks..."
-          pnpm exec eslint src --ext .ts,.tsx,.js,.jsx --fix-dry-run || echo "⚠️ ESLint issues found but continuing..."
+          pnpm frontend lint || echo "⚠️ ESLint issues found but continuing..."
           echo "✅ ESLint checks completed"
 
   # フロントエンド Type チェック
@@ -60,7 +57,7 @@ jobs:
     defaults:
       run:
         working-directory: ./frontend
-    
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -88,13 +85,13 @@ jobs:
 
       - name: Install dependencies
         run: |
-          # Install workspace dependencies from root directory  
-          pnpm install --filter @cinecom/frontend
+          # Install workspace dependencies from root directory
+          pnpm install --filter @cinecom/frontend --no-frozen-lockfile
 
       - name: Run TypeScript type check
         run: |
           echo "📝 Running TypeScript type checks..."
-          pnpm exec tsc --noEmit
+          pnpm frontend typecheck
           echo "✅ TypeScript type checks completed"
 
   # フロントエンド Unit Tests
@@ -103,7 +100,7 @@ jobs:
     defaults:
       run:
         working-directory: ./frontend
-    
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -131,18 +128,13 @@ jobs:
 
       - name: Install dependencies
         run: |
-          # Install workspace dependencies from root directory  
-          pnpm install --filter @cinecom/frontend
+          # Install workspace dependencies from root directory
+          pnpm install --filter @cinecom/frontend --no-frozen-lockfile
 
       - name: Run tests
         run: |
           echo "🧪 Running frontend unit tests..."
-          # テストが設定されていない場合はスキップ
-          if pnpm run test --silent 2>/dev/null; then
-            pnpm run test
-          else
-            echo "⚠️  No test script configured, skipping tests"
-          fi
+          pnpm frontend test
           echo "✅ Frontend unit tests completed"
 
   # フロントエンド Build チェック
@@ -151,7 +143,7 @@ jobs:
     defaults:
       run:
         working-directory: ./frontend
-    
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -179,13 +171,13 @@ jobs:
 
       - name: Install dependencies
         run: |
-          # Install workspace dependencies from root directory  
-          pnpm install --filter @cinecom/frontend
+          # Install workspace dependencies from root directory
+          pnpm install --filter @cinecom/frontend --no-frozen-lockfile
 
       - name: Build application
         run: |
           echo "🏗️ Building frontend application..."
-          pnpm run build
+          pnpm frontend build
           echo "✅ Frontend build completed successfully"
 
   # フロントエンド統合チェック
@@ -193,7 +185,7 @@ jobs:
     needs: [frontend-lint, frontend-type-check, frontend-unit-tests, frontend-build]
     runs-on: ubuntu-latest
     if: always() && needs.frontend-lint.result == 'success' && needs.frontend-type-check.result == 'success' && needs.frontend-unit-tests.result == 'success' && needs.frontend-build.result == 'success'
-    
+
     steps:
       - name: Frontend integration success
         run: |
