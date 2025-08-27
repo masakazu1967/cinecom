@@ -1,0 +1,449 @@
+# セキュリティスキャン - 基本・高速セキュリティ検査
+name: Security Scan
+
+on:
+  push:
+    branches: ['main', 'feature/**', 'hotfix/**']
+  pull_request:
+    branches: ['main']
+  schedule:
+    # 毎日午前2時（JST）に実行
+    - cron: '0 17 * * *'
+
+env:
+  NODE_VERSION: '18'
+  PNPM_VERSION: '8'
+
+jobs:
+  # 変更検出
+  detect-changes:
+    runs-on: ubuntu-latest
+    outputs:
+      backend: ${{ steps.changes.outputs.backend }}
+      frontend: ${{ steps.changes.outputs.frontend }}
+      config: ${{ steps.changes.outputs.config }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: dorny/paths-filter@v2
+        id: changes
+        with:
+          filters: |
+            backend:
+              - 'backend/**'
+            frontend:
+              - 'frontend/**'
+            config:
+              - '.github/workflows/**'
+              - 'package.json'
+              - '**/package.json'
+              - '**/pnpm-lock.yaml'
+
+  # コードスキャン（CodeQL）
+  codeql-analysis:
+    name: CodeQL Security Analysis
+    runs-on: ubuntu-latest
+    needs: detect-changes
+    if: |
+      needs.detect-changes.outputs.backend == 'true' || 
+      needs.detect-changes.outputs.frontend == 'true' ||
+      needs.detect-changes.outputs.config == 'true'
+    
+    permissions:
+      actions: read
+      contents: read
+      security-events: write
+
+    strategy:
+      fail-fast: false
+      matrix:
+        language: ['javascript']
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@v2
+        with:
+          languages: ${{ matrix.language }}
+          queries: +security-and-quality
+
+      - name: Perform CodeQL Analysis
+        uses: github/codeql-action/analyze@v2
+        with:
+          category: "/language:${{matrix.language}}"
+
+  # 依存関係脆弱性スキャン
+  dependency-scan:
+    name: Dependency Vulnerability Scan
+    runs-on: ubuntu-latest
+    needs: detect-changes
+    if: |
+      needs.detect-changes.outputs.backend == 'true' || 
+      needs.detect-changes.outputs.frontend == 'true'
+
+    strategy:
+      matrix:
+        service:
+          - { name: 'user-service', path: 'backend/user-service' }
+          - { name: 'movie-service', path: 'backend/movie-service' }
+          - { name: 'actor-service', path: 'backend/actor-service' }
+          - { name: 'scene-service', path: 'backend/scene-service' }
+          - { name: 'review-service', path: 'backend/review-service' }
+          - { name: 'frontend', path: 'frontend' }
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: ${{ env.PNPM_VERSION }}
+
+      - name: Check if service exists
+        id: check-service
+        run: |
+          if [ -f "${{ matrix.service.path }}/package.json" ]; then
+            echo "exists=true" >> $GITHUB_OUTPUT
+          else
+            echo "exists=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Install dependencies
+        if: steps.check-service.outputs.exists == 'true'
+        working-directory: ${{ matrix.service.path }}
+        run: pnpm install --frozen-lockfile
+
+      - name: Run pnpm audit
+        if: steps.check-service.outputs.exists == 'true'
+        working-directory: ${{ matrix.service.path }}
+        run: |
+          echo "🔍 Running security audit for ${{ matrix.service.name }}"
+          pnpm audit --audit-level=high --json > audit-report.json || true
+          
+          # 高・重大レベルの脆弱性をチェック
+          VULNERABILITIES=$(jq -r '.advisories | length' audit-report.json 2>/dev/null || echo "0")
+          
+          if [ "$VULNERABILITIES" -gt 0 ]; then
+            echo "⚠️ Found $VULNERABILITIES high/critical vulnerabilities in ${{ matrix.service.name }}"
+            jq -r '.advisories[] | "- \(.title) (Severity: \(.severity))"' audit-report.json
+            echo "::warning::${{ matrix.service.name }} has $VULNERABILITIES high/critical vulnerabilities"
+          else
+            echo "✅ No high/critical vulnerabilities found in ${{ matrix.service.name }}"
+          fi
+
+      - name: Upload audit report
+        if: steps.check-service.outputs.exists == 'true'
+        uses: actions/upload-artifact@v3
+        with:
+          name: audit-report-${{ matrix.service.name }}
+          path: ${{ matrix.service.path }}/audit-report.json
+          retention-days: 30
+
+  # シークレット検出
+  secret-scan:
+    name: Secret Detection
+    runs-on: ubuntu-latest
+    needs: detect-changes
+    if: |
+      needs.detect-changes.outputs.backend == 'true' || 
+      needs.detect-changes.outputs.frontend == 'true' ||
+      needs.detect-changes.outputs.config == 'true'
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Run TruffleHog
+        uses: trufflesecurity/trufflehog@main
+        with:
+          path: ./
+          base: main
+          head: HEAD
+          extra_args: --debug --only-verified
+
+  # ESLint セキュリティ
+  eslint-security:
+    name: ESLint Security Rules
+    runs-on: ubuntu-latest
+    needs: detect-changes
+    if: |
+      needs.detect-changes.outputs.backend == 'true' || 
+      needs.detect-changes.outputs.frontend == 'true'
+
+    strategy:
+      matrix:
+        service:
+          - { name: 'user-service', path: 'backend/user-service' }
+          - { name: 'movie-service', path: 'backend/movie-service' }
+          - { name: 'actor-service', path: 'backend/actor-service' }
+          - { name: 'scene-service', path: 'backend/scene-service' }
+          - { name: 'review-service', path: 'backend/review-service' }
+          - { name: 'frontend', path: 'frontend' }
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: ${{ env.PNPM_VERSION }}
+
+      - name: Check if service exists
+        id: check-service
+        run: |
+          if [ -f "${{ matrix.service.path }}/package.json" ]; then
+            echo "exists=true" >> $GITHUB_OUTPUT
+          else
+            echo "exists=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Install dependencies
+        if: steps.check-service.outputs.exists == 'true'
+        working-directory: ${{ matrix.service.path }}
+        run: pnpm install --frozen-lockfile
+
+      - name: Run ESLint security rules
+        if: steps.check-service.outputs.exists == 'true'
+        working-directory: ${{ matrix.service.path }}
+        run: |
+          echo "🔍 Running ESLint security checks for ${{ matrix.service.name }}"
+          
+          # セキュリティ関連のESLintルールを実行
+          if [ -f ".eslintrc.js" ] || [ -f ".eslintrc.json" ] || [ -f "eslint.config.js" ] || [ -f "eslint.config.mjs" ]; then
+            pnpm run lint --format=json --output-file=eslint-security-report.json || true
+            
+            # セキュリティ関連の警告・エラーをチェック
+            SECURITY_ISSUES=$(jq '[.[] | select(.messages[].ruleId | test("security|no-eval|no-implied-eval"))] | length' eslint-security-report.json 2>/dev/null || echo "0")
+            
+            if [ "$SECURITY_ISSUES" -gt 0 ]; then
+              echo "⚠️ Found $SECURITY_ISSUES security-related ESLint issues in ${{ matrix.service.name }}"
+              echo "::warning::${{ matrix.service.name }} has $SECURITY_ISSUES security-related ESLint issues"
+            else
+              echo "✅ No security-related ESLint issues found in ${{ matrix.service.name }}"
+            fi
+          else
+            echo "ℹ️ No ESLint configuration found in ${{ matrix.service.name }}"
+          fi
+
+      - name: Upload ESLint security report
+        if: steps.check-service.outputs.exists == 'true'
+        uses: actions/upload-artifact@v3
+        with:
+          name: eslint-security-${{ matrix.service.name }}
+          path: ${{ matrix.service.path }}/eslint-security-report.json
+          retention-days: 30
+
+  # Docker イメージスキャン
+  container-scan:
+    name: Container Security Scan
+    runs-on: ubuntu-latest
+    needs: detect-changes
+    if: needs.detect-changes.outputs.backend == 'true'
+
+    strategy:
+      matrix:
+        service: ['user-service', 'movie-service', 'actor-service', 'scene-service', 'review-service']
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Check if Dockerfile exists
+        id: check-dockerfile
+        run: |
+          if [ -f "backend/${{ matrix.service }}/Dockerfile" ]; then
+            echo "exists=true" >> $GITHUB_OUTPUT
+          else
+            echo "exists=false" >> $GITHUB_OUTPUT
+            echo "ℹ️ No Dockerfile found for ${{ matrix.service }}"
+          fi
+
+      - name: Build Docker image for scanning
+        if: steps.check-dockerfile.outputs.exists == 'true'
+        run: |
+          docker build -t cinecom/${{ matrix.service }}:scan backend/${{ matrix.service }}
+
+      - name: Run Trivy vulnerability scanner
+        if: steps.check-dockerfile.outputs.exists == 'true'
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: 'cinecom/${{ matrix.service }}:scan'
+          format: 'sarif'
+          output: 'trivy-${{ matrix.service }}.sarif'
+
+      - name: Upload Trivy scan results to GitHub Security tab
+        if: steps.check-dockerfile.outputs.exists == 'true'
+        uses: github/codeql-action/upload-sarif@v2
+        with:
+          sarif_file: 'trivy-${{ matrix.service }}.sarif'
+          category: 'trivy-${{ matrix.service }}'
+
+  # セキュリティスキャン結果集約
+  security-summary:
+    name: Security Scan Summary
+    runs-on: ubuntu-latest
+    needs: [codeql-analysis, dependency-scan, secret-scan, eslint-security, container-scan]
+    if: always()
+
+    steps:
+      - name: Download all artifacts
+        uses: actions/download-artifact@v3
+
+      - name: Generate security summary
+        run: |
+          echo "# 🔒 セキュリティスキャン結果サマリー" > security-summary.md
+          echo "" >> security-summary.md
+          echo "**実行日時**: $(date -u '+%Y-%m-%d %H:%M:%S UTC')" >> security-summary.md
+          echo "**ブランチ**: ${{ github.ref_name }}" >> security-summary.md
+          echo "**コミット**: ${{ github.sha }}" >> security-summary.md
+          echo "" >> security-summary.md
+          
+          # 各スキャンの結果をチェック
+          echo "## スキャン結果" >> security-summary.md
+          echo "" >> security-summary.md
+          
+          # CodeQL
+          if [ "${{ needs.codeql-analysis.result }}" = "success" ]; then
+            echo "✅ **CodeQL分析**: 完了" >> security-summary.md
+          elif [ "${{ needs.codeql-analysis.result }}" = "failure" ]; then
+            echo "❌ **CodeQL分析**: 脆弱性検出" >> security-summary.md
+          else
+            echo "⏭️ **CodeQL分析**: スキップ" >> security-summary.md
+          fi
+          
+          # 依存関係スキャン
+          if [ "${{ needs.dependency-scan.result }}" = "success" ]; then
+            echo "✅ **依存関係スキャン**: 完了" >> security-summary.md
+          elif [ "${{ needs.dependency-scan.result }}" = "failure" ]; then
+            echo "❌ **依存関係スキャン**: 脆弱性検出" >> security-summary.md
+          else
+            echo "⏭️ **依存関係スキャン**: スキップ" >> security-summary.md
+          fi
+          
+          # シークレット検出
+          if [ "${{ needs.secret-scan.result }}" = "success" ]; then
+            echo "✅ **シークレット検出**: 完了" >> security-summary.md
+          elif [ "${{ needs.secret-scan.result }}" = "failure" ]; then
+            echo "❌ **シークレット検出**: 機密情報検出" >> security-summary.md
+          else
+            echo "⏭️ **シークレット検出**: スキップ" >> security-summary.md
+          fi
+          
+          # ESLint セキュリティ
+          if [ "${{ needs.eslint-security.result }}" = "success" ]; then
+            echo "✅ **ESLint セキュリティ**: 完了" >> security-summary.md
+          elif [ "${{ needs.eslint-security.result }}" = "failure" ]; then
+            echo "❌ **ESLint セキュリティ**: セキュリティルール違反検出" >> security-summary.md
+          else
+            echo "⏭️ **ESLint セキュリティ**: スキップ" >> security-summary.md
+          fi
+          
+          # コンテナスキャン
+          if [ "${{ needs.container-scan.result }}" = "success" ]; then
+            echo "✅ **コンテナスキャン**: 完了" >> security-summary.md
+          elif [ "${{ needs.container-scan.result }}" = "failure" ]; then
+            echo "❌ **コンテナスキャン**: 脆弱性検出" >> security-summary.md
+          else
+            echo "⏭️ **コンテナスキャン**: スキップ" >> security-summary.md
+          fi
+          
+          echo "" >> security-summary.md
+          echo "## 推奨アクション" >> security-summary.md
+          echo "" >> security-summary.md
+          
+          # 失敗したジョブがある場合の推奨アクション
+          if [ "${{ needs.codeql-analysis.result }}" = "failure" ] || 
+             [ "${{ needs.dependency-scan.result }}" = "failure" ] || 
+             [ "${{ needs.secret-scan.result }}" = "failure" ] || 
+             [ "${{ needs.eslint-security.result }}" = "failure" ] || 
+             [ "${{ needs.container-scan.result }}" = "failure" ]; then
+            echo "🚨 **緊急**: 検出された脆弱性または問題を確認し、修正してください。" >> security-summary.md
+            echo "" >> security-summary.md
+            echo "1. GitHub Security タブで詳細を確認" >> security-summary.md
+            echo "2. アーティファクトから詳細レポートをダウンロード" >> security-summary.md
+            echo "3. 脆弱性を修正後、再実行" >> security-summary.md
+          else
+            echo "🎉 すべてのセキュリティスキャンが正常に完了しました！" >> security-summary.md
+          fi
+          
+          # サマリーをファイルに保存
+          cat security-summary.md
+
+      - name: Upload security summary
+        uses: actions/upload-artifact@v3
+        with:
+          name: security-summary
+          path: security-summary.md
+          retention-days: 90
+
+      - name: Comment PR with security summary
+        if: github.event_name == 'pull_request'
+        uses: actions/github-script@v6
+        with:
+          script: |
+            const fs = require('fs');
+            const summary = fs.readFileSync('security-summary.md', 'utf8');
+            
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: summary
+            });
+
+  # セキュリティスキャン失敗時の通知
+  security-notification:
+    name: Security Alert Notification
+    runs-on: ubuntu-latest
+    needs: [codeql-analysis, dependency-scan, secret-scan, eslint-security, container-scan]
+    if: failure()
+
+    steps:
+      - name: Send Discord notification
+        if: github.ref == 'refs/heads/main' || github.event_name == 'schedule'
+        run: |
+          curl -H "Content-Type: application/json" \
+               -d '{
+                 "embeds": [{
+                   "title": "🔒 セキュリティスキャン失敗",
+                   "description": "CineComプロジェクトでセキュリティ上の問題が検出されました。",
+                   "color": 15158332,
+                   "fields": [
+                     {
+                       "name": "リポジトリ",
+                       "value": "${{ github.repository }}",
+                       "inline": true
+                     },
+                     {
+                       "name": "ブランチ",
+                       "value": "${{ github.ref_name }}",
+                       "inline": true
+                     },
+                     {
+                       "name": "実行者",
+                       "value": "${{ github.actor }}",
+                       "inline": true
+                     },
+                     {
+                       "name": "詳細",
+                       "value": "[GitHub Actions](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})"
+                     }
+                   ],
+                   "timestamp": "${{ github.event.head_commit.timestamp }}"
+                 }]
+               }' \
+               "${{ secrets.DISCORD_SECURITY_WEBHOOK_URL }}" || echo "Discord webhook not configured"
