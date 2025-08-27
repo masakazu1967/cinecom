@@ -59,7 +59,8 @@
         "Serhioromano.vscode-gitflow",
         "cweijan.vscode-database-client2",
         "Anthropic.claude-code",
-        "SonarSource.sonarlint-vscode"
+        "SonarSource.sonarlint-vscode",
+        "GitHub.vscode-github-actions"
       ]
     }
   },
