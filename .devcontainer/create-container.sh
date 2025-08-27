@@ -17,9 +17,10 @@ sudo umount /key
 sudo apt update
 sudo apt upgrade -y
 
+sudo apt install -y git-flow
+
 npm install -g @anthropic-ai/claude-code
 
-# Claude Codeのエージェントを協調して動作させるためにtmuxをインストールする
 sudo apt install -y tmux vim
 
 # テスト用データベースのSQLite3をインストールする
