@@ -86,6 +86,17 @@ src/
 ├── types/
 └── test-helpers/
 
+// ドキュメントファイル名: snake_case（プロジェクト統一）
+docs/
+├── project/
+│   ├── requirements_analysis.md    // 既存ファイルとの整合性
+│   └── project_charter.md         // 既存ファイルとの整合性
+├── development/
+│   ├── coding_standards.md        // 既存ファイルとの整合性
+│   └── testing_strategy.md        // 既存ファイルとの整合性
+
+注意: 新規ドキュメント作成時はsnake_caseを使用（プロジェクト全体での一貫性維持）
+
 // ファイル構成例:
 src/
 ├── services/
