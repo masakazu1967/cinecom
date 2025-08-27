@@ -18,7 +18,8 @@
     "docker:up": "docker-compose -f docker-compose.dev.yml up -d",
     "docker:down": "docker-compose -f docker-compose.dev.yml down",
     "docker:logs": "docker-compose -f docker-compose.dev.yml logs -f",
-    "setup": "pnpm install && pnpm docker:up"
+    "setup": "pnpm install && pnpm docker:up",
+    "frontend": "pnpm --filter '@cinecom/frontend'"
   },
   "keywords": ["movies", "community", "nextjs", "nestjs", "typescript", "monorepo"],
   "license": "MIT",
