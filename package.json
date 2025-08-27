@@ -19,7 +19,12 @@
     "docker:down": "docker-compose -f docker-compose.dev.yml down",
     "docker:logs": "docker-compose -f docker-compose.dev.yml logs -f",
     "setup": "pnpm install && pnpm docker:up",
-    "frontend": "pnpm --filter '@cinecom/frontend'"
+    "frontend": "pnpm --filter '@cinecom/frontend'",
+    "user-service": "pnpm --filter '@cinecom/user-service'",
+    "movie-service": "pnpm --filter '@cinecom/movie-service'",
+    "actor-service": "pnpm --filter '@cinecom/actor-service'",
+    "scene-service": "pnpm --filter '@cinecom/scene-service'",
+    "review-service": "pnpm --filter '@cinecom/review-service'"
   },
   "keywords": ["movies", "community", "nextjs", "nestjs", "typescript", "monorepo"],
   "license": "MIT",
