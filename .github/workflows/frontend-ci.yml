@@ -44,12 +44,17 @@ jobs:
             ${{ runner.os }}-pnpm-store-
 
       - name: Install dependencies
-        run: pnpm install
+        run: |
+          # Install root dependencies first (for workspace)
+          pnpm install --filter .
+          # Install frontend dependencies
+          pnpm install
 
       - name: Run ESLint
         run: |
           echo "🔍 Running ESLint checks..."
-          pnpm run lint
+          # Run eslint directly since package.json has minimal script
+          pnpm exec eslint src --ext .ts,.tsx,.js,.jsx
           echo "✅ ESLint checks completed"
 
   # フロントエンド Type チェック
@@ -85,12 +90,23 @@ jobs:
             ${{ runner.os }}-pnpm-store-
 
       - name: Install dependencies
-        run: pnpm install
+        run: |
+          # Install root dependencies first (for workspace)
+          pnpm install --filter .
+          # Install frontend dependencies
+          pnpm install
 
       - name: Run TypeScript type check
         run: |
           echo "📝 Running TypeScript type checks..."
-          pnpm exec tsc --noEmit
+          # Check if next.js dependencies are properly installed
+          if [ -d "node_modules/next" ]; then
+            pnpm exec tsc --noEmit
+          else
+            echo "⚠️ Next.js not found in node_modules, installing..."
+            pnpm install
+            pnpm exec tsc --noEmit
+          fi
           echo "✅ TypeScript type checks completed"
 
   # フロントエンド Unit Tests
@@ -126,7 +142,11 @@ jobs:
             ${{ runner.os }}-pnpm-store-
 
       - name: Install dependencies
-        run: pnpm install
+        run: |
+          # Install root dependencies first (for workspace)
+          pnpm install --filter .
+          # Install frontend dependencies
+          pnpm install
 
       - name: Run tests
         run: |
@@ -172,11 +192,19 @@ jobs:
             ${{ runner.os }}-pnpm-store-
 
       - name: Install dependencies
-        run: pnpm install
+        run: |
+          # Install root dependencies first (for workspace)
+          pnpm install --filter .
+          # Install frontend dependencies
+          pnpm install
 
       - name: Build application
         run: |
           echo "🏗️ Building frontend application..."
+          # Ensure dependencies are installed
+          if [ ! -d "node_modules/next" ]; then
+            pnpm install
+          fi
           pnpm run build
           echo "✅ Frontend build completed successfully"
 
