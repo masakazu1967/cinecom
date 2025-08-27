@@ -43,7 +43,7 @@ jobs:
       - name: Install dependencies
         run: |
           # Install workspace dependencies from root directory
-          pnpm install --filter @cinecom/frontend --no-frozen-lockfile
+          pnpm frontend install --no-frozen-lockfile
 
       - name: Run ESLint
         run: |
@@ -54,9 +54,6 @@ jobs:
   # フロントエンド Type チェック
   frontend-type-check:
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: ./frontend
 
     steps:
       - name: Checkout code
@@ -86,7 +83,7 @@ jobs:
       - name: Install dependencies
         run: |
           # Install workspace dependencies from root directory
-          pnpm install --filter @cinecom/frontend --no-frozen-lockfile
+          pnpm frontend install --no-frozen-lockfile
 
       - name: Run TypeScript type check
         run: |
@@ -97,9 +94,6 @@ jobs:
   # フロントエンド Unit Tests
   frontend-unit-tests:
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: ./frontend
 
     steps:
       - name: Checkout code
@@ -129,7 +123,7 @@ jobs:
       - name: Install dependencies
         run: |
           # Install workspace dependencies from root directory
-          pnpm install --filter @cinecom/frontend --no-frozen-lockfile
+          pnpm frontend install --no-frozen-lockfile
 
       - name: Run tests
         run: |
@@ -140,9 +134,6 @@ jobs:
   # フロントエンド Build チェック
   frontend-build:
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: ./frontend
 
     steps:
       - name: Checkout code
@@ -172,7 +163,7 @@ jobs:
       - name: Install dependencies
         run: |
           # Install workspace dependencies from root directory
-          pnpm install --filter @cinecom/frontend --no-frozen-lockfile
+          pnpm frontend install --no-frozen-lockfile
 
       - name: Build application
         run: |
