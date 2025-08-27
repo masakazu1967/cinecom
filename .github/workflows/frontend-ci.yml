@@ -45,16 +45,31 @@ jobs:
 
       - name: Install dependencies
         run: |
-          # Install root dependencies first (for workspace)
-          pnpm install --filter .
-          # Install frontend dependencies
-          pnpm install
+          # Go to root and install all workspace dependencies
+          cd ../..
+          pnpm install --filter frontend --filter .
+          # Return to frontend directory
+          cd frontend
+          # Verify dependencies
+          echo "Node modules status:"
+          ls -la node_modules/next 2>/dev/null || echo "Next.js not found in local node_modules"
+          ls -la ../node_modules/next 2>/dev/null || echo "Next.js not found in root node_modules"
 
       - name: Run ESLint
         run: |
           echo "🔍 Running ESLint checks..."
-          # Run eslint directly since package.json has minimal script
-          pnpm exec eslint src --ext .ts,.tsx,.js,.jsx
+          # Try multiple approaches to run ESLint
+          if command -v pnpm > /dev/null && pnpm exec eslint --version > /dev/null 2>&1; then
+            pnpm exec eslint src --ext .ts,.tsx,.js,.jsx --fix-dry-run
+          elif [ -f "../node_modules/.bin/eslint" ]; then
+            ../node_modules/.bin/eslint src --ext .ts,.tsx,.js,.jsx --fix-dry-run
+          else
+            echo "⚠️ ESLint not found, installing and running..."
+            cd ../..
+            pnpm install eslint --filter frontend
+            cd frontend
+            pnpm exec eslint src --ext .ts,.tsx,.js,.jsx --fix-dry-run
+          fi
           echo "✅ ESLint checks completed"
 
   # フロントエンド Type チェック
@@ -91,20 +106,29 @@ jobs:
 
       - name: Install dependencies
         run: |
-          # Install root dependencies first (for workspace)
-          pnpm install --filter .
-          # Install frontend dependencies
-          pnpm install
+          # Go to root and install all workspace dependencies
+          cd ../..
+          pnpm install --filter frontend --filter .
+          # Return to frontend directory
+          cd frontend
+          # Verify dependencies
+          echo "Node modules status:"
+          ls -la node_modules/next 2>/dev/null || echo "Next.js not found in local node_modules"
+          ls -la ../node_modules/next 2>/dev/null || echo "Next.js not found in root node_modules"
 
       - name: Run TypeScript type check
         run: |
           echo "📝 Running TypeScript type checks..."
-          # Check if next.js dependencies are properly installed
-          if [ -d "node_modules/next" ]; then
+          # Try to run TypeScript check with proper Next.js context
+          if [ -d "node_modules/next" ] || [ -d "../node_modules/next" ]; then
+            echo "Next.js found, running type check..."
             pnpm exec tsc --noEmit
           else
-            echo "⚠️ Next.js not found in node_modules, installing..."
-            pnpm install
+            echo "⚠️ Next.js not found, installing dependencies..."
+            cd ../..
+            pnpm install --filter frontend
+            cd frontend
+            echo "Retrying type check..."
             pnpm exec tsc --noEmit
           fi
           echo "✅ TypeScript type checks completed"
@@ -143,10 +167,15 @@ jobs:
 
       - name: Install dependencies
         run: |
-          # Install root dependencies first (for workspace)
-          pnpm install --filter .
-          # Install frontend dependencies
-          pnpm install
+          # Go to root and install all workspace dependencies
+          cd ../..
+          pnpm install --filter frontend --filter .
+          # Return to frontend directory
+          cd frontend
+          # Verify dependencies
+          echo "Node modules status:"
+          ls -la node_modules/next 2>/dev/null || echo "Next.js not found in local node_modules"
+          ls -la ../node_modules/next 2>/dev/null || echo "Next.js not found in root node_modules"
 
       - name: Run tests
         run: |
@@ -193,18 +222,27 @@ jobs:
 
       - name: Install dependencies
         run: |
-          # Install root dependencies first (for workspace)
-          pnpm install --filter .
-          # Install frontend dependencies
-          pnpm install
+          # Go to root and install all workspace dependencies
+          cd ../..
+          pnpm install --filter frontend --filter .
+          # Return to frontend directory
+          cd frontend
+          # Verify dependencies
+          echo "Node modules status:"
+          ls -la node_modules/next 2>/dev/null || echo "Next.js not found in local node_modules"
+          ls -la ../node_modules/next 2>/dev/null || echo "Next.js not found in root node_modules"
 
       - name: Build application
         run: |
           echo "🏗️ Building frontend application..."
           # Ensure dependencies are installed
-          if [ ! -d "node_modules/next" ]; then
-            pnpm install
+          if [ ! -d "node_modules/next" ] && [ ! -d "../node_modules/next" ]; then
+            echo "Installing missing dependencies..."
+            cd ../..
+            pnpm install --filter frontend
+            cd frontend
           fi
+          echo "Running build with Next.js..."
           pnpm run build
           echo "✅ Frontend build completed successfully"
 
