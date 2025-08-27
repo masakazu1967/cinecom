@@ -41,7 +41,7 @@ GitHubリポジトリの設定画面で以下を設定:
   ✅ Require status checks to pass  # 自動品質管理の要
     ✅ Require branches to be up to date before merging
     必須ステータスチェック:
-      - frontend-ci
+      - frontend-integration
       - backend-ci
       - security-scan
       - sonarcloud
