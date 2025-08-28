@@ -63,19 +63,19 @@ graph TD
 
 ```yaml
 PNPM設定:
-  バージョン: v8系（最新LTS）
-  インストール: pnpm/action-setup@v2 アクション使用
+  バージョン: v10系（最新LTS）
+  インストール: pnpm/action-setup@v4 アクション使用
   キャッシュ戦略: ~/.pnpm-store ディレクトリ
   ロックファイル: pnpm-lock.yaml
 
 実行環境要件:
-  Node.js: 18以上
+  Node.js: 22以上
   OS: ubuntu-latest（Linux）
   権限: 読み書き権限必要
 
 セットアップ手順:
   1. Node.jsセットアップ
-  2. pnpm/action-setup@v2でpnpmインストール
+  2. pnpm/action-setup@v4でpnpmインストール
   3. pnpm install --frozen-lockfileで依存関係インストール
   4. 各種pnpmコマンド実行
 
@@ -110,8 +110,8 @@ on:
     types: [published]
 
 env:
-  NODE_VERSION: '18'
-  PNPM_VERSION: '8'
+  NODE_VERSION: '22'
+  PNPM_VERSION: '10'
   DOCKER_REGISTRY: 'ghcr.io'
   IMAGE_PREFIX: 'cinecom'
 
@@ -182,7 +182,7 @@ jobs:
           cache-dependency-path: '${{ matrix.service.path }}/pnpm-lock.yaml'
       
       - name: Install pnpm
-        uses: pnpm/action-setup@v2
+        uses: pnpm/action-setup@v4
         with:
           version: ${{ env.PNPM_VERSION }}
       
@@ -233,7 +233,7 @@ jobs:
           cache-dependency-path: 'frontend/pnpm-lock.yaml'
       
       - name: Install pnpm
-        uses: pnpm/action-setup@v2
+        uses: pnpm/action-setup@v4
         with:
           version: ${{ env.PNPM_VERSION }}
       
@@ -294,7 +294,7 @@ jobs:
           sarif_file: 'trivy-results.sarif'
       
       - name: Install pnpm
-        uses: pnpm/action-setup@v2
+        uses: pnpm/action-setup@v4
         with:
           version: ${{ env.PNPM_VERSION }}
       
@@ -555,7 +555,7 @@ jobs:
       
       - name: Install pnpm
         if: contains(github.event.head_commit.modified, 'frontend/') || contains(github.event.head_commit.modified, 'services/')
-        uses: pnpm/action-setup@v2
+        uses: pnpm/action-setup@v4
         with:
           version: ${{ env.PNPM_VERSION }}
       
