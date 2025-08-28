@@ -54,8 +54,8 @@ export class CreateUserDto {
   @IsString()
   @Length(1, 100, { message: 'Display name must be between 1 and 100 characters' })
   @Transform(({ value }) => value.trim())
-  @Matches(/^[a-zA-Z0-9\s\-_]+$/, { 
-    message: 'Display name can only contain letters, numbers, spaces, hyphens, and underscores' 
+  @Matches(/^[a-zA-Z0-9\s\-_]+$/, {
+    message: 'Display name can only contain letters, numbers, spaces, hyphens, and underscores'
   })
   displayName: string;
 }
@@ -108,7 +108,7 @@ export const sanitizeReviewContent = (content: string): string => {
     .replace(/>/g, '&gt;')
     .replace(/"/g, '&quot;')
     .replace(/'/g, '&#x27;');
-  
+
   return escaped.trim().substring(0, 5000); // 長さ制限
 };
 ```
@@ -189,7 +189,7 @@ export class JwtService {
   constructor() {
     this.secret = process.env.JWT_SECRET;
     this.expiresIn = process.env.JWT_EXPIRES_IN || '1h';
-    
+
     if (!this.secret || this.secret.length < 32) {
       throw new Error('JWT_SECRET must be at least 32 characters long');
     }
@@ -354,16 +354,19 @@ export const reviewLimiter = rateLimit({
 重要度に応じた段階的暗号化実装により、セキュリティと開発効率のバランスを確保します。
 
 **Phase 1: 必須暗号化（MVP）**:
+
 - パスワードハッシュ化（bcrypt, scrypt）
 - API キー・JWT シークレット
 - 支払い情報（該当する場合）
 
 **Phase 2: 個人情報暗号化（拡張）**:
+
 - 電話番号、住所、生年月日
 - プライベートなユーザー設定
 - 機密性の高いメタデータ
 
 **Phase 3: 包括的暗号化（完全版）**:
+
 - 全ユーザー生成コンテンツの選択的暗号化
 - 検索可能暗号化の導入
 - 暗号化キー管理システムの統合
@@ -397,7 +400,7 @@ export class EncryptionService {
     encrypted += cipher.final('hex');
 
     const tag = cipher.getAuthTag();
-    
+
     // IV + Tag + Encrypted Data を結合
     return iv.toString('hex') + tag.toString('hex') + encrypted;
   }
@@ -484,9 +487,9 @@ export class SecurityLogger {
         winston.format.json()
       ),
       transports: [
-        new winston.transports.File({ 
+        new winston.transports.File({
           filename: 'logs/security.log',
-          level: 'warn' 
+          level: 'warn'
         }),
         new winston.transports.Console({
           format: winston.format.simple()
@@ -557,9 +560,9 @@ securityLogger.logAuthSuccess('user-123', '192.168.1.1', 'Mozilla/5.0...');
 securityLogger.logAuthFailure('attacker@evil.com', '192.168.1.100', 'curl/7.0', 'Invalid credentials');
 
 // 怪しい活動
-securityLogger.logSuspiciousActivity('user-456', 'Multiple failed login attempts', { 
-  attempts: 10, 
-  timeWindow: '5 minutes' 
+securityLogger.logSuspiciousActivity('user-456', 'Multiple failed login attempts', {
+  attempts: 10,
+  timeWindow: '5 minutes'
 });
 ```
 
@@ -577,9 +580,9 @@ export function Audit(resource: string, action: string) {
 
       try {
         const result = await originalMethod.apply(this, args);
-        
+
         securityLogger.logDataAccess(userId, resource, action);
-        
+
         return result;
       } catch (error) {
         securityLogger.logSecurityIncident('medium', `Failed ${action} on ${resource}`, {
@@ -617,7 +620,7 @@ describe('Security Tests', () => {
   describe('Input Validation', () => {
     it('should prevent SQL injection', async () => {
       const maliciousInput = "'; DROP TABLE users; --";
-      
+
       await expect(
         userService.findByEmail(maliciousInput)
       ).rejects.toThrow(ValidationError);
@@ -625,7 +628,7 @@ describe('Security Tests', () => {
 
     it('should prevent XSS attacks', async () => {
       const xssPayload = '<script>alert("XSS")</script>';
-      
+
       const result = await reviewService.createReview({
         content: xssPayload,
         movieId: 'movie-1',
@@ -640,13 +643,13 @@ describe('Security Tests', () => {
   describe('Authentication', () => {
     it('should enforce rate limiting on login attempts', async () => {
       const loginData = { email: 'test@example.com', password: 'wrong' };
-      
+
       // 5回失敗させる
       for (let i = 0; i < 5; i++) {
         await expect(authService.login(loginData))
           .rejects.toThrow(AuthenticationError);
       }
-      
+
       // 6回目は制限される
       await expect(authService.login(loginData))
         .rejects.toThrow(TooManyAttemptsError);
@@ -669,7 +672,7 @@ describe('Security Tests', () => {
   describe('Authorization', () => {
     it('should prevent privilege escalation', async () => {
       const regularUserToken = createTokenForRole('user');
-      
+
       await expect(
         adminService.deleteUser('user-2', regularUserToken)
       ).rejects.toThrow(ForbiddenError);
@@ -743,16 +746,16 @@ export class IncidentNotificationService {
         await this.sendEmailAlert(notification);
         await this.sendSlackAlert(notification);
         break;
-      
+
       case 'high':
         await this.sendEmailAlert(notification);
         await this.sendSlackAlert(notification);
         break;
-      
+
       case 'medium':
         await this.sendSlackAlert(notification);
         break;
-      
+
       case 'low':
         // ログのみ
         break;

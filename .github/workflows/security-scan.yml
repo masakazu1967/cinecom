@@ -434,34 +434,71 @@ jobs:
       - name: Send Discord notification
         if: github.ref == 'refs/heads/main' || github.event_name == 'schedule'
         run: |
+          # 失敗したジョブの詳細を取得
+          FAILED_JOBS=""
+          if [ "${{ needs.codeql-analysis.result }}" = "failure" ]; then
+            FAILED_JOBS="$FAILED_JOBS• CodeQL分析\n"
+          fi
+          if [ "${{ needs.dependency-scan.result }}" = "failure" ]; then
+            FAILED_JOBS="$FAILED_JOBS• 依存関係スキャン\n"
+          fi
+          if [ "${{ needs.secret-scan.result }}" = "failure" ]; then
+            FAILED_JOBS="$FAILED_JOBS• シークレット検出\n"
+          fi
+          if [ "${{ needs.eslint-security.result }}" = "failure" ]; then
+            FAILED_JOBS="$FAILED_JOBS• ESLintセキュリティ\n"
+          fi
+          if [ "${{ needs.container-scan.result }}" = "failure" ]; then
+            FAILED_JOBS="$FAILED_JOBS• コンテナスキャン\n"
+          fi
+
+          # イベント種別に基づく色とアイコンの設定
+          if [ "${{ github.event_name }}" = "schedule" ]; then
+            TITLE_ICON="⏰"
+            EVENT_DESC="定期セキュリティスキャンで問題が検出されました"
+          else
+            TITLE_ICON="🔒"
+            EVENT_DESC="セキュリティスキャンで問題が検出されました"
+          fi
+
           curl -H "Content-Type: application/json" \
-               -d '{
-                 "embeds": [{
-                   "title": "🔒 セキュリティスキャン失敗",
-                   "description": "CineComプロジェクトでセキュリティ上の問題が検出されました。",
-                   "color": 15158332,
-                   "fields": [
+               -d "{
+                 \"embeds\": [{
+                   \"title\": \"$TITLE_ICON セキュリティアラート - CineCom\",
+                   \"description\": \"$EVENT_DESC\",
+                   \"color\": 15158332,
+                   \"fields\": [
                      {
-                       "name": "リポジトリ",
-                       "value": "${{ github.repository }}",
-                       "inline": true
+                       \"name\": \"🏷️ リポジトリ\",
+                       \"value\": \"${{ github.repository }}\",
+                       \"inline\": true
                      },
                      {
-                       "name": "ブランチ",
-                       "value": "${{ github.ref_name }}",
-                       "inline": true
+                       \"name\": \"🌿 ブランチ\",
+                       \"value\": \"${{ github.ref_name }}\",
+                       \"inline\": true
                      },
                      {
-                       "name": "実行者",
-                       "value": "${{ github.actor }}",
-                       "inline": true
+                       \"name\": \"👤 実行者\",
+                       \"value\": \"${{ github.actor }}\",
+                       \"inline\": true
                      },
                      {
-                       "name": "詳細",
-                       "value": "[GitHub Actions](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})"
+                       \"name\": \"❌ 失敗したスキャン\",
+                       \"value\": \"$FAILED_JOBS\",
+                       \"inline\": false
+                     },
+                     {
+                       \"name\": \"🔗 詳細・修正方法\",
+                       \"value\": \"[GitHub Actions で詳細確認](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})\\n[Security タブで脆弱性確認](${{ github.server_url }}/${{ github.repository }}/security)\",
+                       \"inline\": false
                      }
                    ],
-                   "timestamp": "${{ github.event.head_commit.timestamp }}"
+                   \"footer\": {
+                     \"text\": \"CineCom Security Monitor\",
+                     \"icon_url\": \"https://github.githubassets.com/images/modules/logos_page/GitHub-Mark.png\"
+                   },
+                   \"timestamp\": \"$(date -u +%Y-%m-%dT%H:%M:%SZ)\"
                  }]
-               }' \
+               }" \
                "${{ secrets.DISCORD_SECURITY_WEBHOOK_URL }}" || echo "Discord webhook not configured"
