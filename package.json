@@ -1,0 +1,41 @@
+{
+  "name": "cinecom",
+  "version": "0.1.0",
+  "private": true,
+  "description": "映画情報管理・コミュニティプラットフォーム",
+  "author": {
+    "name": "masakazu kobayashi",
+    "email": "masakazu1967@yggdrasilroot.info"
+  },
+  "scripts": {
+    "build": "turbo build",
+    "dev": "turbo dev",
+    "lint": "turbo lint",
+    "typecheck": "turbo typecheck",
+    "test": "turbo test",
+    "clean": "turbo clean && rm -rf node_modules",
+    "format": "prettier --write \"**/*.{ts,tsx,js,jsx,json,css,md}\"",
+    "docker:up": "docker-compose -f docker-compose.dev.yml up -d",
+    "docker:down": "docker-compose -f docker-compose.dev.yml down",
+    "docker:logs": "docker-compose -f docker-compose.dev.yml logs -f",
+    "setup": "pnpm install && pnpm docker:up",
+    "frontend": "pnpm --filter '@cinecom/frontend'",
+    "user-service": "pnpm --filter '@cinecom/user-service'",
+    "movie-service": "pnpm --filter '@cinecom/movie-service'",
+    "actor-service": "pnpm --filter '@cinecom/actor-service'",
+    "scene-service": "pnpm --filter '@cinecom/scene-service'",
+    "review-service": "pnpm --filter '@cinecom/review-service'"
+  },
+  "keywords": ["movies", "community", "nextjs", "nestjs", "typescript", "monorepo"],
+  "license": "MIT",
+  "devDependencies": {
+    "turbo": "^1.13.4",
+    "prettier": "^3.3.3",
+    "@types/node": "^20.14.15"
+  },
+  "packageManager": "pnpm@8.15.6",
+  "engines": {
+    "node": ">=20.17.0",
+    "pnpm": ">=8.15.0"
+  }
+}

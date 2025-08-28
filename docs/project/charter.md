@@ -84,22 +84,38 @@ frontend-app:
 
 #### **企画・設計系エージェント**
 
+**要求分析エージェント**:
+
+- **責任**: ステークホルダーヒアリング議事録の解析・構造化、要求事項の抽出・分類・整理、矛盾点・曖昧点・不足情報の特定、追加調査項目の洗い出し
+- **成果物**: 要求分析書（docs/project/requirements_analysis.md）、矛盾点・課題整理表（docs/project/requirements_issues.md）、追加調査項目リスト（docs/project/additional_research.md）
+- **権限**: 要求の分類・構造化方法の決定、議事録解析結果の判定
+- **依存**: プロジェクト憲章、ステークホルダーヒアリング議事録
+- **協調**: 要件定義エージェント（成果物引き渡し）、PMエージェント（追加調査承認）、アーキテクトエージェント（技術制約相談）
+- **KPI**: 要求抽出完全性≥95%、分類精度≥90%、矛盾検出率≥85%、分析完了時間≤3営業日
+- **Taskツールでの指示例**:
+  - **基本要求分析**: `Task(subagent_type="requirements_analysis", description="ステークホルダー要求分析", prompt="docs/meetings/stakeholder_interviews/ ディレクトリ内のヒアリング議事録（初回・追加・補完調査含む）を分析し、要求分析書（docs/project/requirements_analysis.md）・矛盾点整理表（docs/project/requirements_issues.md）・追加調査項目リスト（docs/project/additional_research.md）を作成してください。プロジェクト憲章の制約条件も考慮してください。")`
+  - **要件変更対応**: `Task(subagent_type="requirements_analysis", description="要件変更分析", prompt="docs/meetings/requirements_sessions/ 内の要件変更議事録を分析し、既存要求分析書への影響を評価して更新版を作成してください。変更内容と影響範囲を明確に記録してください。")`
+  - **優先度分析**: `Task(subagent_type="requirements_analysis", description="要求優先度分析", prompt="要求分析書を基に各要求のビジネス価値・技術実現性・依存関係を評価し、MVP vs 将来拡張の初期分類を行ってください。")`
+  - **技術整合性チェック**: `Task(subagent_type="requirements_analysis", description="技術制約適合性検証", prompt="要求分析結果を技術スタック（NestJS、Next.js、PostgreSQL、マイクロサービス構成）と照らし合わせ、実現困難な要求を特定し代替案を提示してください。")`
+
 **要件定義エージェント**:
 
-- **責任**: ユーザーストーリー作成、機能要件整理
-- **成果物**: 要件定義書、ユーザーストーリー（docs/project/user_stories.md + GitHub Issues）
-- **権限**: 機能優先順位の決定
-- **KPI**: ユーザーストーリー完成度、要件変更回数
+- **責任**: 要求分析書を基にした要件定義書・ユーザーストーリー作成、機能要件の詳細化・優先順位付け
+- **成果物**: 要件定義書（docs/project/requirements.md）、ユーザーストーリー（docs/project/user_stories.md + GitHub Issues）
+- **権限**: 機能優先順位の最終決定、要件仕様の確定
+- **依存**: 要求分析エージェント（要求分析書、課題整理表、追加調査結果）
+- **協調**: 要求分析エージェント（成果物受領・課題確認）、UX/UIデザインエージェント（ユーザー体験要件）、アーキテクトエージェント（技術制約確認）
+- **KPI**: ユーザーストーリー完成度、要件変更回数≤3回、要件定義完了時間≤5営業日
 - **ユーザーストーリー管理方針**:
+  - **作成基準**: 要求分析書の機能要求を基に、INVEST原則に従ったストーリー作成
+  - **重複防止**: 既存user_stories.mdとの照合、類似機能の統合判定
   - **新規作成**: user_stories.mdに追加 + 対応するGitHub Issue作成
   - **更新**: user_stories.mdを修正 + 未実装の場合は既存Issue更新、実装済みの場合は新Issue作成
   - **進捗管理**: GitHub Issuesをカンバンで視覚化して進捗追跡
-- **スラッシュコマンド**:
-- `/create_user_stories` - ユーザーストーリー作成（ファイル + Issues）
-- `/update_user_stories` - ユーザーストーリー更新（ファイル + Issues管理）
-- `/prioritize_features` - 機能優先順位付け
-- `/trigger_architecture_design` - アーキテクトエージェントへマイクロサービス設計指示
-- `/trigger_design_phase` - UX/UIエージェントへ設計フェーズ開始指示
+- **Taskツールでの指示例**:
+  - **要件定義書作成**: `Task(subagent_type="requirements_definition", description="要件定義書作成", prompt="要求分析書（docs/project/requirements_analysis.md）を基に、Cinecomプロジェクトの詳細な要件定義書を作成してください。機能要件・非機能要件・制約条件を明確に定義してください。")`
+  - **ユーザーストーリー作成**: `Task(subagent_type="requirements_definition", description="ユーザーストーリー作成", prompt="要件定義書を基に、INVEST原則に従ったユーザーストーリーを作成し、重複チェックを行った上でdocs/project/user_stories.mdに保存してください。対応するGitHub Issuesも作成してください。")`
+  - **優先順位確定**: `Task(subagent_type="requirements_definition", description="機能優先順位確定", prompt="要求分析書の初期優先度評価を基に、ビジネス価値・技術的依存関係・開発コストを考慮して最終的な機能優先順位を決定してください。")`
 
 **UX/UIデザインエージェント**:
 
@@ -111,12 +127,10 @@ frontend-app:
   - **Level 2**: UI/UX仕様変更（ナビゲーション、画面遷移）→ 要件定義エージェント + プロジェクトマネージャー承認
   - **Level 3**: 根本的UX変更（ユーザーフロー大幅変更）→ 全体合意 + 人間承認
 - **KPI**: デザイン一貫性スコア、ユーザビリティテスト結果
-- **スラッシュコマンド**:
-- `/design_wireframes` - ワイヤーフレーム作成開始
-- `/create_prototype` - プロトタイプ作成
-- `/validate_ux` - UX検証
-- `/request_design_approval` - 設計承認依頼（Level 2以上）
-- `/trigger_frontend_design` - フロントエンドエージェントへUI実装指示
+- **Taskツールでの指示例**:
+  - **ワイヤーフレーム作成**: `Task(subagent_type="ux_ui_design", description="UI/UXワイヤーフレーム作成", prompt="Cinecomプロジェクトのユーザーストーリーに基づいて、映画・俳優検索、シーン管理機能のワイヤーフレームを作成してください。レスポンシブWebUIを考慮してください。")`
+  - **プロトタイプ作成**: `Task(subagent_type="ux_ui_design", description="プロトタイプ作成", prompt="作成したワイヤーフレームを基に、インタラクティブなプロトタイプを作成してください。")`
+  - **設計承認依頼**: PMエージェントがLevel 2以上の場合に人間承認プロセスを開始
 
 **アーキテクトエージェント**:
 
@@ -128,13 +142,10 @@ frontend-app:
   - **Level 2**: API仕様変更、データベーススキーマ変更 → 関連エージェント協議
   - **Level 3**: 技術スタック変更、アーキテクチャ根本変更 → 全体合意 + 人間承認
 - **KPI**: システム設計品質、技術選定適合性
-- **スラッシュコマンド**:
-- `/design_architecture` - アーキテクチャ設計開始
-- `/design_microservices` - マイクロサービス分割設計
-- `/select_tech_stack` - 技術スタック選定
-- `/review_system_design` - システム設計レビュー
-- `/trigger_database_design` - データベースエージェントへDB設計指示
-- `/trigger_backend_setup` - バックエンドエージェントへ基盤構築指示
+- **Taskツールでの指示例**:
+  - **予備作業（並列実行可能）**: `Task(subagent_type="architect", description="技術スタック調査", prompt="映像・俳優データベースサービス用の技術スタック（NestJS、Next.js、PostgreSQL等）のベストプラクティス、マイクロサービス分割パターン、類似プロジェクト事例を調査し、技術選定の基礎資料を作成してください。")`
+  - **詳細設計（要件定義後）**: `Task(subagent_type="architect", description="システムアーキテクチャ設計", prompt="要件定義書に基づいて、Cinecomプロジェクトのマイクロサービス構成を詳細設計してください。user-service、movie-service、actor-service、scene-service、review-serviceの技術スタック選定と相互連携を定義してください。")`
+  - **API仕様設計**: `Task(subagent_type="architect", description="サービス間API仕様設計", prompt="システム設計に基づいて各マイクロサービス間のRESTful API仕様を設計し、docs/architecture/api_specification.mdに記録してください。")`
 
 #### **開発系エージェント**
 
@@ -146,12 +157,10 @@ frontend-app:
 - **依存**: UX/UIデザインエージェント、バックエンドエージェント
 - **協調**: DevOpsエージェント（システム全体パフォーマンス分析）
 - **KPI**: ページロード時間、コードカバレッジ、ESLint準拠率
-- **スラッシュコマンド**:
-- `/implement_ui` - UI実装開始
-- `/optimize_frontend` - フロントエンド最適化
-- `/test_components` - コンポーネントテスト
-- `/integrate_with_microservices` - マイクロサービスAPI統合開始
-- `/trigger_frontend_testing` - テストエージェントへフロントエンドテスト指示
+- **Taskツールでの指示例**:
+  - **UI実装**: `Task(subagent_type="frontend", description="Next.js UI実装", prompt="UX/UIデザインのワイヤーフレームに基づいて、Next.js 14+ with TypeScriptでWebアプリケーションを実装してください。Tailwind CSS + HeadlessUIを使用し、レスポンシブ対応してください。")`
+  - **API統合**: `Task(subagent_type="frontend", description="マイクロサービスAPI統合", prompt="バックエンドの各マイクロサービス（user-service、movie-service等）のAPIと統合し、フロントエンドからデータ取得・更新ができるようにしてください。")`
+  - **パフォーマンス最適化**: PMエージェントが実装完了後に最適化タスクを発行
 
 **バックエンドエージェント**:
 
@@ -161,16 +170,10 @@ frontend-app:
 - **依存**: アーキテクトエージェント、データベースエージェント
 - **協調**: DevOpsエージェント（システム全体パフォーマンス分析）
 - **KPI**: API応答時間、エラー率、コードカバレッジ
-- **スラッシュコマンド**:
-- `/implement_user_service` - ユーザーサービス実装
-- `/implement_movie_service` - 映画サービス実装
-- `/implement_actor_service` - 俳優サービス実装
-- `/implement_scene_service` - シーンサービス実装
-- `/implement_review_service` - レビューサービス実装
-- `/setup_service_auth` - サービス間認証構築
-- `/optimize_backend` - バックエンド最適化
-- `/trigger_backend_testing` - テストエージェントへバックエンドテスト指示
-- `/notify_frontend_ready` - フロントエンドエージェントへAPI準備完了通知
+- **Taskツールでの指示例**:
+  - **マイクロサービス実装**: `Task(subagent_type="backend", description="マイクロサービス実装", prompt="アーキテクト設計とDB設計に基づいて、NestJS + TypeScriptで以下のマイクロサービスを実装してください: user-service、movie-service、actor-service、scene-service、review-service。各サービスのRESTful APIとビジネスロジックを含めてください。")`
+  - **サービス間認証**: `Task(subagent_type="backend", description="サービス間認証構築", prompt="JWT + OAuth2を使用してマイクロサービス間の認証システムを構築してください。セキュリティ要件に従って実装してください。")`
+  - **API最適化**: PMエージェントが基本実装完了後にパフォーマンス最適化タスクを発行
 
 **データベースエージェント**:
 
@@ -180,16 +183,11 @@ frontend-app:
 - **依存**: アーキテクトエージェント
 - **協調**: DevOpsエージェント（システム全体パフォーマンス分析）
 - **KPI**: クエリ実行時間、データ整合性、インデックス効率
-- **スラッシュコマンド**:
-- `/design_user_schema` - ユーザーDBスキーマ設計
-- `/design_movie_schema` - 映画DBスキーマ設計
-- `/design_actor_schema` - 俳優DBスキーマ設計
-- `/design_scene_schema` - シーンDBスキーマ設計
-- `/design_review_schema` - レビューDBスキーマ設計
-- `/optimize_queries` - クエリ最適化
-- `/create_migrations` - マイグレーション作成
-- `/setup_database` - データベース環境構築
-- `/trigger_backend_development` - バックエンドエージェントへDB準備完了通知
+- **Taskツールでの指示例**:
+  - **予備作業（並列実行可能）**: `Task(subagent_type="database", description="DB技術調査", prompt="マイクロサービス用PostgreSQL設計のベストプラクティス、TypeORM活用法、データベース分割パターン、サービス間データ整合性確保手法を調査し、DB技術選定の基礎資料を作成してください。")`
+  - **詳細設計（システム設計後）**: `Task(subagent_type="database", description="マイクロサービス用DB設計", prompt="システム設計とAPI仕様に基づいて、PostgreSQL 15+でサービス別データベーススキーマを設計してください。user-service、movie-service、actor-service、scene-service、review-service用のスキーマとTypeORMエンティティを作成してください。")`
+  - **マイグレーション作成**: `Task(subagent_type="database", description="データベースマイグレーション作成", prompt="設計したスキーマに基づいてTypeORMマイグレーションファイルを作成し、データベース環境をセットアップしてください。")`
+  - **パフォーマンス最適化**: PMエージェントが基本実装完了後にクエリ最適化タスクを発行
 
 #### **品質保証系エージェント**
 
@@ -199,13 +197,10 @@ frontend-app:
 - **成果物**: テストスイート、テストレポート、統合テスト結果
 - **権限**: テスト合格基準の設定
 - **KPI**: テストカバレッジ、バグ検出率、テスト実行時間
-- **スラッシュコマンド**:
-- `/create_unit_tests` - 単体テストスイート作成
-- `/create_integration_tests` - 統合テストスイート作成
-- `/run_service_tests` - サービス別テスト実行
-- `/run_e2e_tests` - E2Eテスト実行
-- `/analyze_coverage` - カバレッジ分析
-- `/trigger_security_testing` - セキュリティエージェントへセキュリティテスト指示
+- **Taskツールでの指示例**:
+  - **テストスイート作成**: `Task(subagent_type="test", description="マイクロサービステスト作成", prompt="各マイクロサービスの単体テスト、統合テスト、E2Eテストスイートを作成してください。Jest + React Testing Libraryを使用し、80%以上のカバレッジを達成してください。")`
+  - **テスト実行・分析**: `Task(subagent_type="test", description="テスト実行・カバレッジ分析", prompt="作成したテストスイートを実行し、カバレッジ分析を行ってレポートを作成してください。")`
+  - **次フェーズ連携**: PMエージェントがテスト完了後にセキュリティエージェントへTaskを発行
 
 **セキュリティエージェント**:
 
@@ -213,12 +208,10 @@ frontend-app:
 - **成果物**: セキュリティチェックリスト、監査レポート
 - **権限**: セキュリティ要件の設定
 - **KPI**: 脆弱性スコア、セキュリティテスト合格率
-- **スラッシュコマンド**:
-- `/security_audit` - セキュリティ監査実行
-- `/scan_vulnerabilities` - 脆弱性スキャン
-- `/validate_service_auth` - サービス間認証検証
-- `/validate_api_security` - API セキュリティ検証
-- `/trigger_deployment_prep` - DevOpsエージェントへデプロイ準備指示
+- **Taskツールでの指示例**:
+  - **セキュリティ監査**: `Task(subagent_type="security", description="マイクロサービスセキュリティ監査", prompt="OWASP Top 10に基づいて全マイクロサービスのセキュリティ監査を実行してください。脆弱性スキャン、サービス間認証検証、API セキュリティ検証を含めてください。")`
+  - **セキュリティ強化**: `Task(subagent_type="security", description="セキュリティ強化実装", prompt="監査結果に基づいてセキュリティ強化策を実装し、個人情報暗号化とデータ保護を確保してください。")`
+  - **次フェーズ連携**: PMエージェントがセキュリティ要件達成後にDevOpsエージェントへTaskを発行
 
 #### **運用系エージェント**
 
@@ -228,14 +221,10 @@ frontend-app:
 - **成果物**: デプロイパイプライン（Vercel + Render）、インフラコード、GitHub設定（CODEOWNERS、Webhooks、Actions）、Claude Code協調環境、Sentry統合、パフォーマンス分析レポート
 - **権限**: デプロイ方法・インフラ構成・Claude Code協調環境・パフォーマンス改善施策の決定
 - **KPI**: デプロイ成功率、システム稼働率、エージェント応答時間
-- **スラッシュコマンド**:
-- `/setup_ci_cd` - CI/CDパイプライン構築
-- `/setup_microservice_deployment` - マイクロサービスデプロイ設定
-- `/monitor_system` - システム監視
-- `/manage_agents` - エージェント管理
-- `/analyze_performance` - パフォーマンス分析
-- `/trigger_staging_deployment` - ステージングデプロイ実行
-- `/trigger_production_deployment` - 本番デプロイ実行
+- **Taskツールでの指示例**:
+  - **CI/CD構築**: `Task(subagent_type="devops", description="マイクロサービス用CI/CD構築", prompt="GitHub ActionsでマイクロサービスのCI/CDパイプラインを構築してください。サービス別のステージングデプロイ、プロダクトタグベース本番デプロイを設定してください。")`
+  - **デプロイ環境構築**: `Task(subagent_type="devops", description="デプロイ環境構築", prompt="Vercel (Frontend) + Render (Backend Services)でデプロイ環境を構築し、システム監視とSentry統合を設定してください。")`
+  - **パフォーマンス分析**: PMエージェントが全体実装完了後にシステム最適化タスクを発行
 
 **プロジェクトマネージャーエージェント**:
 
@@ -244,641 +233,192 @@ frontend-app:
 - **権限**: スケジュール調整、優先順位変更、Level 1-2の承認、UX/UI設計承認、リリース承認
 - **依存**: DevOpsエージェント（GitHub設定・運用）
 - **KPI**: 進捗達成率、課題解決時間、エージェント稼働率、承認処理時間
-- **スラッシュコマンド**:
-- `/trigger_user_stories` - 要件定義エージェントへユーザーストーリー作成指示
-- `/track_progress` - 進捗追跡
-- `/manage_issues` - 課題管理
-- `/coordinate_team` - チーム調整
-- `/approve_design` - UX/UI設計承認
-- `/approve_release` - リリース承認
-- `/create_product_tag` - プロダクトタグ作成
-- `/escalate_to_human` - 人間への承認エスカレーション
-- `/trigger_next_phase` - 次フェーズ開始指示
-- `/orchestrate_workflow` - ワークフロー全体統制
+- **Claude Code協調システムでの役割**:
+  - **TodoWrite管理**: 全体進捗をTodoWriteで可視化・追跡
+  - **並列Task実行**: 複数エージェントへの並列Task発行で効率的な協調
+  - **進捗調整**: エージェント完了報告を受けて次フェーズのTask発行
+  - **承認プロセス**: Level 2以上の設計変更時に人間承認プロセスを開始
+  - **課題管理**: ブロッカー発生時の代替案検討とエスカレーション
+- **Taskツール活用例**:
+  - **フェーズ開始**: `Task(subagent_type="requirements_definition", description="要件定義", prompt="プロジェクト憲章に基づいてCinecomの要件定義を作成...")`と同時に複数エージェントへ並列発行
+  - **進捗管理**: TodoWriteで各フェーズの状況を追跡し、完了したタスクから次のタスクを動的に発行
+  - **品質管理**: 各エージェントの成果物レビューと品質基準達成の確認
+- **人間レビュー待ち受けプロセス**:
+  - **レビュー依頼**: Level 2以上の成果物完了時に人間レビューを依頼し、TodoWriteで「人間レビュー待ち」状態を記録
+  - **並行作業継続**: レビュー待ち中も他の並行可能なタスクを継続実行
+  - **フィードバック処理**:
+    - **承認 (Yes)**: 次フェーズのTaskを自動発行
+    - **修正依頼 (No + 指摘)**: 指摘内容を基に該当エージェントへ修正Taskを自動発行
+    - **保留**: 追加情報待ちとしてTodoWriteで状態管理
+- **セッション継続性管理**:
+  - **状態保存**: `.agents/state/pm-session.json`でレビュー待ち状態、進行中タスク、依存関係を保存
+  - **自動復旧**: ターミナル再起動時に保存状態から自動復旧し、レビュー待ちを継続
+  - **手動再開**: `/resume_review`コマンドでレビュー待ち状態を確認・再開
+- **レビュー履歴記録システム**:
+  - **記録場所**: 複数箇所での記録によるトレーサビリティ確保
+    - **docs/project/review_history.md**: 人間レビューの履歴・判断根拠・指摘内容の構造化記録
+    - **.agents/reviews/human-review-log.json**: システム処理用の機械読取可能なレビューログ
+    - **GitHub Issues**: レビュー結果に基づく修正タスクや新要件の追跡
+  - **記録項目**:
+
+    ```yaml
+    レビュー記録フォーマット:
+      timestamp: "2025-08-21T14:30:00Z"
+      review_id: "review-20250821-001"
+      target: "ユーザーストーリー v1.2"
+      reviewer: "human"
+      agent_requestor: "pm-agent"
+      decision: "修正依頼" # 承認/修正依頼/保留
+      feedback: "シーン検索機能の詳細仕様が不明確"
+      action_taken: "requirements-agentに詳細仕様作成を依頼"
+      follow_up_task: "Task(subagent_type='requirements', ...)"
+      session_state: "継続中"
+    ```
+
+  - **監査証跡の維持**:
+    - **意思決定プロセス**: 各レビューでの判断理由・根拠の記録
+    - **修正内容追跡**: 指摘事項に対する具体的な修正内容の記録
+    - **品質改善サイクル**: レビューフィードバックから学習した改善点の蓄積
 
 ### 技術スタック
 
-#### **フロントエンド**
+プロジェクトで採用する技術スタックは、マイクロサービス構成と開発効率を重視して選定されています。
 
-- **フレームワーク**: Next.js 14+ with TypeScript
-- **状態管理**: Zustand / Redux Toolkit
-- **スタイリング**: Tailwind CSS + HeadlessUI
-- **ビルドツール**: Next.js内蔵
-- **テスト**: Jest + React Testing Library
+#### **基本構成**
 
-#### **バックエンド（マイクロサービス）**
-
-- **ランタイム**: Node.js 18+
-- **フレームワーク**: NestJS with TypeScript + Express.js
+- **フロントエンド**: Next.js 14+ with TypeScript + Tailwind CSS
+- **バックエンド**: NestJS with TypeScript + Express.js (マイクロサービス構成)
+- **データベース**: PostgreSQL 15+ (サービス別DB) + Redis (キャッシュ)
+- **インフラ**: Docker + GitHub Actions + Vercel/Render
 - **認証**: JWT + OAuth2 (Google/GitHub)
-- **API**: RESTful + GraphQL (Apollo Server)
-- **バリデーション**: class-validator (RESTful) / zod (その他)
-- **サービス間通信**: HTTP/REST + イベント駆動（Redis Pub/Sub）
 
-#### **データベース**
+#### **マイクロサービス構成**
 
-- **メイン**: PostgreSQL 15+ (サービス別DB)
-- **キャッシュ**: Redis 7+
-- **ORM**: TypeORM
-- **検索**: Elasticsearch (オプション)
+5つのバックエンドサービス (user-service, movie-service, actor-service, scene-service, review-service) + フロントエンドアプリケーションで構成されています。
 
-#### **インフラ・運用**
-
-- **コンテナ**: Docker + Docker Compose
-- **CI/CD**: GitHub Actions
-- **監視・ログ**: Sentry
-- **デプロイ**: Vercel (Frontend) + Render (Backend Services)
-
-#### **外部サービス**
-
-- **通知**: Discord
-- **分析**: Google Analytics
+**詳細**: `/docs/architecture/technology_stack.md` - 完全な技術スタック仕様と選定理由
 
 ### Git戦略・デプロイフロー
 
-#### **ブランチ戦略: GitHub Flow**
+マイクロサービス構成に最適化されたGitHub Flowベースの開発・デプロイフローを採用しています。
+
+#### **基本ブランチ戦略**
+
+- **main**: 本番デプロイ対象ブランチ（常にデプロイ可能状態）
+- **feature/***: 機能開発ブランチ（エージェント別・機能別）
+- **hotfix/***: 緊急修正ブランチ
+
+#### **環境別デプロイフロー**
+
+1. **開発環境**: feature/* ブランチ → ブランチ別並行デプロイ（個別機能確認）
+2. **ステージング環境**: main ブランチ → サービス単位継続的デプロイ（統合テスト）
+3. **本番環境**: プロダクトタグ → 全サービス一括デプロイ（リリース）
+
+#### **CI/CD パイプライン**
+
+GitHub Actionsによる変更検出ベースのCI/CD、サービス別並列ビルド・テスト、環境別自動デプロイを実現しています。
+
+**詳細**:
+
+- `/docs/development/git_workflow.md` - Git戦略・ブランチ運用詳細
+- `/docs/development/ci_cd_pipeline.md` - CI/CDパイプライン設計・実装
+
+### AI エージェント協調における意思決定
+
+単一GitHubアカウントでのAIエージェント協調では、従来の権限ベース意思決定は適用できません。代替として、協調ベースの意思決定プロセスを採用します。
+
+#### **協調意思決定レベル**
+
+- **Level 0**: 人間の最終判断（プロジェクト方向性・ビジネス要件）
+- **Level 1**: 単一エージェント判断（専門領域内の実装詳細）
+- **Level 2**: 複数エージェント協調（影響範囲が複数領域にわたる変更）
+- **Level 3**: 全体調整 + 人間承認（アーキテクチャ変更等の根本的変更）
+
+#### **エージェント責任原則**
+
+**基本方針**: 「責任領域は独立、作業進行は協調」
+
+**独立責任領域**:
+- 各エージェントは自分の専門分野での判断・実装・成果物作成に完全な責任を持つ
+- 専門知識に基づく技術的判断は他エージェントの承認を必要としない
+- 品質基準・コーディング規約・セキュリティガイドラインの遵守責任
+
+**協調作業進行**:
+- 複数領域に影響する変更は事前の協議・合意が必要
+- 他エージェントの成果物に依存する作業は進捗・仕様の確認が必要
+- プロジェクト全体の整合性確保のための情報共有・調整
+
+#### **実際の協調プロセス**
 
 ```yaml
-ブランチ構成:
-  main: 本番デプロイ対象ブランチ
-  feature/*: 機能開発ブランチ
-  hotfix/*: 緊急修正ブランチ
+技術的制約:
+  - 全エージェントが同一GitHubアカウントで動作
+  - 実際の権限分離は不可能
+  - GitHub上での承認プロセスは機能しない
 
-デプロイフロー:
-  1. feature/* → PR → main (コードレビュー)
-  2. main → ステージング環境 (自動デプロイ)
-  3. 統合テスト → 受入テスト
-  4. プロダクトタグ作成 (v1.x.x)
-  5. 本番環境デプロイ (手動承認)
+代替協調手法:
+  1. ドキュメントベースでの役割分担明記
+  2. ブランチ命名規則でのエージェント識別
+  3. コミットメッセージでの担当エージェント明記
+  4. プルリクエストテンプレートでの自己チェック
+  5. 自動化ツール（CI/CD, SonarCloud）での品質管理
 ```
 
-#### **環境別デプロイ戦略**
+#### **協調フロー（単一アカウント版）**
 
-**開発環境 (Development)**:
+1. **提案・記録**: GitHub Issue/PR作成で変更提案
+2. **エージェント識別**: ブランチ名・コミットメッセージで担当明記
+3. **自動品質チェック**: CI/CD・SonarCloudによる品質ゲート
+4. **自己レビュー**: PRテンプレートのチェックリスト実行
+5. **実装・統合**: 自動テスト通過後のマージ・デプロイ
+
+#### **品質管理システム（自動化重視）**
+
+人間によるレビューを代替する自動化システム:
 
 ```yaml
-デプロイ対象: feature/*, hotfix/* ブランチ
-トリガー: プッシュ時の自動デプロイ
-目的: 各エージェントの個別機能確認
-デプロイ方式: ブランチ別並行デプロイ
+自動品質管理:
+  CI/CD Pipeline:
+    - Lint, TypeScript, Test の自動実行
+    - セキュリティスキャン（pnpm audit）
+    - ビルド・デプロイ検証
 
-実装例:
-- feature/user-auth → dev-user-auth.cinecom-dev.com
-- feature/movie-search → dev-movie.cinecom-dev.com
-- feature/scene-management → dev-scene.cinecom-dev.com
+  SonarCloud品質ゲート:
+    - コード品質スコア
+    - セキュリティホットスポット
+    - 技術的負債測定
+    - カバレッジ最低基準
+
+  自動依存関係管理:
+    - Dependabot脆弱性監視
+    - 依存関係更新PR自動作成
+
+利点:
+  - 24/7の品質監視
+  - 人的ミス排除
+  - 一貫した基準適用
+  - 高速フィードバックループ
 ```
 
-**ステージング環境 (Staging)**:
+#### **エージェント協調システム**
 
-```yaml
-デプロイ対象: main ブランチ
-トリガー: mainブランチへのマージ時（サービス単位で継続的デプロイ）
-目的: 受入テスト・QA検証・統合テスト
-デプロイ方式: mainの最新状態を反映
+Claude CodeのTodoWrite + Taskツールを基盤とした効率的な協調システムを構築しています。
 
-実装例:
-- user-service main → staging-user.cinecom.com
-- movie-service main → staging-movie.cinecom.com
-- scene-service main → staging-scene.cinecom.com
-- frontend main → staging.cinecom.com
-```
+**基本構造**:
 
-**本番環境 (Production)**:
+- **プロジェクトマネージャー**: TodoWriteで全体管理、Taskで作業分散
+- **専門エージェント**: Taskツールで起動、専門分野での作業実行
+- **協調メカニズム**: GitHub PR/Issues + Discord通知
 
-```yaml
-デプロイ対象: main ブランチ (プロダクトタグ v1.x.x)
-トリガー: プロダクトリリースタグ作成時
-目的: エンドユーザー提供
-デプロイ方式: 統合バージョンでの一括デプロイ
-
-実装例:
-- プロダクトタグ v1.1.0 → 全サービスの特定コミット組み合わせ
-- 各サービスバージョンの組み合わせを記録
-- 本番環境への一括デプロイ
-```
-
-#### **マイクロサービス用CI/CD**
-
-**サービス別ステージングデプロイ**:
-
-```yaml
-# GitHub Actions設定例
-on:
-  push:
-    branches: [main]
-    paths: 
-      - 'services/user-service/**'
-      - 'services/movie-service/**'
-      - 'services/actor-service/**'
-      - 'services/scene-service/**'
-      - 'services/review-service/**'
-
-jobs:
-  detect-changes:
-    # 変更されたサービスを検出
-  deploy-changed-services:
-    # 変更されたサービスのみステージング環境にデプロイ
-```
-
-**プロダクトタグベース本番デプロイ**:
-
-```yaml
-# リリースタグ作成時の動作
-on:
-  release:
-    types: [published]
-
-jobs:
-  deploy-production:
-    steps:
-      - name: Create deployment manifest
-        # 各サービスの現在のコミットハッシュを記録
-      - name: Deploy all services
-        # 全サービスを統合バージョンで本番デプロイ
-      - name: Store deployment history
-        # デプロイ履歴を保存
-```
-
-#### **バージョン管理戦略**
-
-**プロダクトレベルのセマンティックバージョニング**:
-
-```yaml
-v1.0.0: 初回リリース
-  - user-service: commit abc123
-  - movie-service: commit def456
-  - scene-service: commit ghi789
-  - review-service: commit jkl012
-  - frontend: commit mno345
-
-v1.1.0: 機能追加 (シーン管理機能)
-  - user-service: commit abc789 (認証強化)
-  - movie-service: commit def890 (検索最適化)
-  - actor-service: commit ghi456 (キャスト管理機能)
-  - scene-service: commit jkl123 (新機能)
-  - review-service: commit mno456 (UI改善)
-  - frontend: commit pqr678 (新UI実装)
-
-v1.1.1: バグ修正
-  - user-service: commit abc789 (変更なし)
-  - movie-service: commit def999 (検索バグ修正)
-  - actor-service: commit ghi456 (変更なし)
-  - scene-service: commit jkl123 (変更なし)
-  - review-service: commit mno456 (変更なし)
-  - frontend: commit pqr789 (UI修正)
-```
-
-### 意思決定プロセス
-
-#### **決定権限レベル**
-
-**Level 0 (人間の最終判断)**: プロジェクト方向性・ビジネス要件
-
-- 機能要件の追加・削除
-- プロジェクトスコープ変更
-- ビジネス価値に関わる判断
-
-**Level 1 (自律判断)**: 各エージェントの専門領域内
-
-- 実装方法の詳細
-- 専門分野でのベストプラクティス適用
-- パフォーマンス最適化
-
-**Level 2 (関連エージェント協議)**: 複数エージェントに影響
-
-- API仕様変更
-- データベーススキーマ変更
-- UI/UX仕様変更
-- マイクロサービス間インターフェース変更
-
-**Level 3 (全体合意 + 人間承認)**: プロジェクト全体に影響
-
-- 技術スタック変更
-- アーキテクチャ根本変更
-- スケジュール大幅変更
-- マイクロサービス分割方針変更
-
-#### **合意形成プロセス（Claude Code環境）**
-
-1. **提案・通知**: 担当エージェントが変更案を作成し、以下の方法で通知
-   - **GitHubプルリクエスト**: コード変更の場合
-   - **GitHubイシュー**: 仕様変更・新機能提案の場合
-   - **ドキュメント更新**: 設計書・仕様書の変更
-
-2. **自動通知システム**:
-
-   ```yaml
-   通知トリガー:
-     - PR作成時: 影響を受けるファイル・モジュールの担当エージェントに通知
-     - Issue作成時: ラベルに基づいて関連エージェントに通知
-     - ドキュメント更新: CODEOWNERS機能で担当者自動アサイン
-   
-   通知方法:
-     - GitHub Webhookによる自動通知
-     - Discord チャンネル通知
-     - Claude Code Taskツールによるエージェント起動
-     - GitHub Issues/PRベースでの協調
-   ```
-
-3. **ドキュメント更新確認システム**:
-
-   ```bash
-   # CODEOWNERS設定例
-   /docs/architecture/     @architect-agent @backend-agent @frontend-agent
-   /docs/api/  deploy-actor-service:
-    needs: detect-changes
-    if: needs.detect-changes.outputs.actor-service == 'true'
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - name: Deploy actor-service to staging
-        run: |
-          cd services/actor-service
-          docker build -t cinecom-actor-service:${{ github.sha }} .
-          # Render.com or 他のサービスにデプロイ
-             @backend-agent @frontend-agent
-   /docs/database/        @database-agent @backend-agent
-   /docs/design/          @ux-agent @frontend-agent
-   
-   # Discord通知設定
-   channels:
-     - "#cinecom-architecture": アーキテクチャ関連更新
-     - "#cinecom-api": API仕様変更通知
-     - "#cinecom-database": DB設計変更通知
-     - "#cinecom-frontend": UI/UX設計変更通知
-   ```
-
-4. **影響度判定・レビュー依頼**:
-
-   ```markdown
-   # プルリクエスト・イシューテンプレート
-   ## 変更概要
-   - 変更内容の説明
-   
-   ## 影響を受けるサービス・エージェント（自動タグ付け）
-   - [ ] @frontend-agent (UI変更の場合)
-   - [ ] @backend-agent (API変更の場合)
-   - [ ] @database-agent (スキーマ変更の場合)
-   - [ ] user-service (ユーザー管理への影響)
-   - [ ] movie-service (映画データへの影響)
-   - [ ] scene-service (シーンデータへの影響)
-   - [ ] review-service (レビューシステムへの影響)
-   
-   ## 影響度レベル
-   - [ ] Level 1 (自律判断)
-   - [ ] Level 2 (関連エージェント協議)
-   - [ ] Level 3 (全体合意 + 人間承認)
-   
-   ## レビュー期限
-   - 期限: [作成日 + 2営業日]
-   ```
-
-5. **レビュー・合意形成**:
-   - 影響を受けるエージェントがGitHub上でレビュー・コメント
-   - tmuxベースリアルタイム協議（必要時）
-   - 合意形成後、承認プロセスへ
-
-6. **決定・マージ**:
-   - Level 0-3: 人間による最終承認後マージ
-   - Level 1-2: プロジェクトマネージャーエージェントが承認後マージ
-
-7. **全体通知**: マージ後、全エージェントに変更内容をDiscord・tmuxで通知
-
-8. **レビュー依頼通知システム**: PRでレビュアーに指定されたエージェントへの自動通知
-
-#### **レビュー依頼通知システム**
-
-**GitHub Webhook → Discord → エージェント起動の自動フロー**:
-
-```mermaid
-sequenceDiagram
-    participant Dev as 開発エージェント
-    participant GitHub as GitHub
-    participant Webhook as Webhook Handler
-    participant Discord as Discord
-    participant Reviewer as レビューエージェント
-
-    Dev->>GitHub: PR作成
-    GitHub->>GitHub: CODEOWNERSでレビュアー自動アサイン
-    GitHub->>Webhook: PR作成イベント送信
-    Webhook->>Discord: レビュー依頼通知投稿
-    Discord->>Reviewer: 通知表示
-    Webhook->>Reviewer: tmux send-keys実行
-    Reviewer->>Reviewer: /check_messages実行
-    Reviewer->>GitHub: PRレビュー開始
-```
-
-**実装仕様**:
-
-```bash
-# webhook_handler.sh - GitHub Webhook処理
-#!/bin/bash
-
-PR_NUMBER=$(echo $WEBHOOK_DATA | jq -r '.number')
-PR_TITLE=$(echo $WEBHOOK_DATA | jq -r '.pull_request.title')
-PR_URL=$(echo $WEBHOOK_DATA | jq -r '.pull_request.html_url')
-AUTHOR=$(echo $WEBHOOK_DATA | jq -r '.pull_request.user.login')
-REVIEWERS=$(echo $WEBHOOK_DATA | jq -r '.pull_request.requested_reviewers[].login')
-
-for reviewer in $REVIEWERS; do
-    # Discord通知
-    ./send_discord_notification.sh "$reviewer" \
-        "🔍 **新しいレビュー依頼**
-📄 PR #$PR_NUMBER: $PR_TITLE
-👤 作成者: $AUTHOR  
-🔗 $PR_URL
-⏰ 期限: $(date -d '+24 hours' '+%Y-%m-%d %H:%M')" "high"
-    
-    # tmuxエージェント即座起動
-    tmux send-keys -t "cinecom-project:$reviewer" "/check_messages" Enter
-    
-    # レビュー依頼記録
-    echo "PR #$PR_NUMBER|$PR_TITLE|$PR_URL|$(date)|pending" >> \
-        ".agents/reviews/$reviewer-assigned.csv"
-done
-```
-
-**エージェント側レビュー確認システム**:
-
-```bash
-# /check_messages コマンド拡張
-check_messages() {
-    echo "=== 📬 メッセージ・レビュー依頼確認 ==="
-    
-    # 1. 新着レビュー依頼確認
-    if [ -f ".agents/reviews/$(whoami)-assigned.csv" ]; then
-        echo "📋 **新しいレビュー依頼:**"
-        while IFS='|' read -r pr_num title url assigned_date status; do
-            if [ "$status" = "pending" ]; then
-                echo "  • PR #$pr_num: $title"
-                echo "    URL: $url"
-                echo "    依頼日時: $assigned_date"
-                echo ""
-            fi
-        done < ".agents/reviews/$(whoami)-assigned.csv"
-    fi
-    
-    # 2. GitHub API で最新のレビュー依頼確認
-    echo "🔍 **GitHub 上の未処理レビュー:**"
-    gh pr list --reviewer $(whoami) --state open --json number,title,url,createdAt
-    
-    # 3. 期限切れレビューの警告
-    check_overdue_reviews
-}
-
-check_overdue_reviews() {
-    current_time=$(date +%s)
-    while IFS='|' read -r pr_num title url assigned_date status; do
-        if [ "$status" = "pending" ]; then
-            assigned_timestamp=$(date -d "$assigned_date" +%s)
-            hours_passed=$(( (current_time - assigned_timestamp) / 3600 ))
-            
-            if [ $hours_passed -gt 24 ]; then
-                echo "⚠️  **期限切れレビュー:** PR #$pr_num (${hours_passed}時間経過)"
-                # 緊急Discord通知
-                ./send_discord_notification.sh "$(whoami)" \
-                    "🚨 レビュー期限切れ: PR #$pr_num" "critical"
-            fi
-        fi
-    done < ".agents/reviews/$(whoami)-assigned.csv" 2>/dev/null || true
-}
-```
-
-**Discord通知フォーマット標準化**:
-
-```yaml
-レビュー依頼通知フォーマット:
-  タイトル: "🔍 新しいレビュー依頼"
-  内容: |
-    📄 PR #123: Add User Authentication API
-    👤 作成者: @backend-agent
-    📁 変更ファイル: docs/api/user_endpoints.md, src/auth/
-    👥 レビュアー: @frontend-agent @security-agent
-    🔗 https://github.com/cinecom/pull/123
-    ⏰ 期限: 2025-08-22 18:00
-  色: オレンジ (#ff9800)
-  チャンネル: "#cinecom-reviews"
-
-期限切れ警告フォーマット:
-  タイトル: "🚨 レビュー期限切れ警告"
-  内容: |
-    📄 PR #123: Add User Authentication API
-    ⏰ 経過時間: 26時間
-    👤 担当者: @frontend-agent
-    🔗 https://github.com/cinecom/pull/123
-  色: 赤 (#f44336)
-  チャンネル: "#cinecom-urgent"
-```
-
-**定期監視システム**:
-
-```bash
-# review_monitor.sh - 5分毎実行
-#!/bin/bash
-
-for agent in pm architect requirements ux-design frontend backend database testing security devops; do
-    # エージェントが起動中かチェック
-    if tmux list-sessions | grep -q "cinecom-project"; then
-        if tmux list-windows -t cinecom-project | grep -q "$agent"; then
-            # 定期的なレビュー確認を実行
-            tmux send-keys -t "cinecom-project:$agent" "/check_messages >/dev/null 2>&1" Enter
-        fi
-    fi
-done
-
-# 全体的な期限切れレビューをPMに報告
-overdue_count=$(find .agents/reviews/ -name "*-assigned.csv" -exec grep -l "pending" {} \; | wc -l)
-if [ $overdue_count -gt 0 ]; then
-    ./send_discord_notification.sh "pm" \
-        "📊 期限切れレビュー: ${overdue_count}件" "high"
-fi
-```
-
-**レビュー完了時の自動処理**:
-
-```bash
-# mark_review_completed.sh
-#!/bin/bash
-
-PR_NUMBER=$1
-REVIEWER=$(whoami)
-
-# レビュー完了マーク
-sed -i "s/|$PR_NUMBER|.*|pending$/|$PR_NUMBER|.*|completed|$(date)/" \
-    ".agents/reviews/$REVIEWER-assigned.csv"
-
-# 完了通知
-./send_discord_notification.sh "general" \
-    "✅ レビュー完了: PR #$PR_NUMBER by @$REVIEWER" "medium"
-```
-
-**Claude Code特有の協調メカニズム**:
-
-```bash
-# .github/CODEOWNERS（例）
-# API仕様変更
-/api/                    @backend-agent @frontend-agent
-/docs/api/               @backend-agent @frontend-agent
-
-# マイクロサービス関連
-/services/user-service/  @backend-agent @database-agent
-/services/movie-service/ @backend-agent @database-agent
-/services/actor-service/ @backend-agent @database-agent
-/services/scene-service/ @backend-agent @database-agent
-/services/review-service/ @backend-agent @database-agent
-
-# データベース関連
-/migrations/             @database-agent @backend-agent
-/models/                 @database-agent @backend-agent
-
-# フロントエンド
-/frontend/               @frontend-agent @ux-agent
-/docs/design/            @ux-agent @frontend-agent
-
-# 設計ドキュメント
-/docs/architecture/      @architect-agent @all-agents
-/docs/project/charter.md @pm-agent @human-reviewer
-```
-
-#### **エージェント協調システム仕様**
-
-**Claude Codeベース協調システム**:
-
-```yaml
-協調の基本構造:
-  プロジェクトマネージャー:
-    - TodoWriteツールで全体タスク管理
-    - Taskツールで各エージェントに作業分散
-    - 進捗追跡と課題調整
-
-  専門エージェント:
-    - specialized agentとしてTaskツールで起動
-    - 各自の専門分野での作業実行
-    - 作業完了時にPMに結果報告
-
-  利用可能なsubagent_type:
-    - general-purpose: 汎用的な研究・実装タスク
-    - requirements: 要件定義・ユーザーストーリー作成
-    - architecture: システム設計・技術選定
-    - database: データベース設計・最適化
-    - backend: マイクロサービス実装
-    - frontend: UI/UX実装
-    - testing: テスト作成・実行
-    - security: セキュリティ監査
-    - devops: CI/CD・デプロイ管理
-```
-
-**協調フロー**:
-
-```mermaid
-graph TD
-    A[PM: TodoWrite全体計画] --> B[Task: requirements agent]
-    A --> C[Task: architecture agent]
-    A --> D[Task: database agent]
-    
-    B --> E[要件定義完了報告]
-    C --> F[システム設計完了報告]
-    D --> G[DB設計完了報告]
-    
-    E --> H[PM: 次フェーズTaskツール実行]
-    F --> H
-    G --> H
-    
-    H --> I[Task: backend agent]
-    H --> J[Task: frontend agent]
-    H --> K[Task: testing agent]
-```
+**協調フロー**: 要求分析 → 要件定義 → 技術調査（並列） → 詳細設計（順次） → 実装（並列）
 
 **Claude Code協調の特徴**:
 
-```yaml
-プロジェクトマネージャーの役割:
-  - TodoWriteで全体進捗管理
-  - 複数Taskツールの並列実行
-  - エージェント間の調整
-  
-専門エージェントの役割:
-  - 専門分野でのタスク実行
-  - 完了報告をPMに返却
-  - 必要に応じて他エージェントとの連携
-  
-協調の利点:
-  - 複雑なメッセージングシステム不要
-  - Claude Codeネイティブな並列処理
-  - シンプルで可視化しやすい進捗管理
-  - 自動的な依存関係解決
+- シンプルで可視化しやすい進捗管理
+- 複雑なメッセージングシステム不要
+- 自動的な依存関係解決
 
-# コンテキスト：Cinecomプロジェクトの映像作品・俳優データベース開発
-# 制約：プロジェクト憲章に従った品質基準・スコープ遵守
-# 協調：Claude Code TodoWrite + Taskツールベースの協調システム
-# レビュー：GitHub PRベースでの協調レビュー
-```
-
-**Claude Code協調の実装**:
-
-```yaml
-プロジェクトマネージャーの実装:
-  # 全体タスク計画
-  TodoWrite:
-    - フェーズ別タスクリスト作成
-    - 進捗追跡と状態管理
-    - 課題・ブロッカーの可視化
-  
-  # 並列エージェント起動
-  Task:
-    - 複数の専門エージェントを並列起動
-    - subagent_typeによる適切なエージェント選択
-    - 詳細な作業指示とコンテキスト提供
-
-専門エージェントの実装:
-  # 各エージェントの責務
-  - 専門分野での具体的な作業実行
-  - 成果物の作成（ファイル、設計書、コード等）
-  - 完了報告と次のフェーズへの引き継ぎ情報
-  
-協調メカニズム:
-  - GitHub PRベースでのコードレビュー
-  - ドキュメント更新での知識共有
-  - Issuesでのタスクトラッキング
-```
-
-**Claude Code協調の実装例**:
-
-```yaml
-# プロジェクトマネージャーの実装例
-PM実装パターン:
-  1. 全体計画作成:
-     TodoWrite([
-       "Phase1: プロジェクト基盤構築",
-       "要件定義・ユーザーストーリー作成", 
-       "システム設計・アーキテクチャ決定",
-       "データベーススキーマ設計"
-     ])
-  
-  2. 並列エージェント起動:
-     Task(subagent_type="general-purpose", 
-          description="要件定義作成", 
-          prompt="Cinecomプロジェクトのユーザーストーリーを作成...")
-     
-     Task(subagent_type="general-purpose",
-          description="システム設計", 
-          prompt="マイクロサービス構成を設計...")
-  
-  3. 進捗管理:
-     TodoWrite(更新された進捗状況)
-
-専門エージェントの実装:
-  - 受け取ったタスクを専門分野で実行
-  - 成果物をファイルとして作成
-  - GitHub Issues/PRでの連携
-  - 完了報告をPMに返却
-
-協調メカニズム:
-  - GitHub PRベースでのコードレビュー
-  - ドキュメント更新での知識共有  
-  - Issuesでのタスクトラッキング
-  - Discord（オプション）での通知
-```
+**詳細**: `/docs/agents/coordination_protocols.md` - エージェント間協調の詳細プロトコル
 
 ### 開発フェーズ
 
@@ -890,6 +430,8 @@ PM実装パターン:
 
 - [ ] GitHubリポジトリセットアップ（DevOps）
 - [ ] Claude Code協調システム運用開始（DevOps）
+- [ ] ステークホルダーヒアリング実施（PM + 人間）
+- [ ] 要求分析・構造化（要求分析エージェント）
 - [ ] 要件定義・ユーザーストーリー作成（要件定義）
 - [ ] マイクロサービスアーキテクチャ設計（アーキテクト）
 
@@ -1057,82 +599,33 @@ Discord通知（オプション）:
 - **Discord緊急通知**: 重要度Criticalの即座通知
 - **レビュー期限管理**: 24時間以内のレビュー完了目標・期限切れ自動警告
 
-### 品質基準
+### 品質基準・リスク管理・モニタリング
 
-#### **コード品質**
+運用・品質管理に関する詳細な基準・プロセスは専門ドキュメントで管理されています。
 
-- **テストカバレッジ**: 80%以上（サービス別）
-- **静的解析**: ESLint/Prettier/SonarQube通過必須
-- **コードレビュー**: 全PR必須レビュー・承認
-- **ドキュメント**: 全API・コンポーネントの説明完備
-- **マイクロサービス品質**: サービス間API契約テスト
+#### **品質基準概要**
 
-#### **パフォーマンス**
+- **コード品質**: テストカバレッジ80%以上、ESLint/Prettier準拠
+- **パフォーマンス**: API応答時間500ms以下、ページロード2秒以内
+- **セキュリティ**: OWASP Top 10対策、JWT + OAuth2認証
 
-- **API応答時間**: 95%パーセンタイルで500ms以下（サービス別）
-- **ページロード時間**: First Contentful Paint 2秒以下
-- **可用性**: 99.9%稼働率（サービス別）
-- **同時接続**: 1000ユーザー対応
-- **サービス間通信**: レイテンシ < 100ms
+#### **リスク管理概要**
 
-#### **セキュリティ**
+- **技術リスク**: サービス間依存・データ整合性・スケーラビリティ
+- **協調リスク**: エージェント間通信・プロセス運用・システム障害
+- **人的リスク**: レビュー遅延・仕様変更・知識ギャップ
 
-- **OWASP Top 10**: 全項目対策実装
-- **認証**: JWT + OAuth2実装
-- **サービス間認証**: 適切な認証・認可実装
-- **データ保護**: 個人情報暗号化
-- **脆弱性スキャン**: 定期実行・パス必須
+#### **モニタリング概要**
 
-### リスク管理
+- **開発進捗**: スプリント達成率・コミット頻度・PR処理時間
+- **システム品質**: バグ発生率・テスト実行時間・ビルド成功率
+- **協調システム**: エージェント応答時間・通知成功率・レビュー完了率
 
-#### **技術リスク**
+**詳細**:
 
-- **サービス間依存**: API契約の早期確定・バージョニング戦略
-- **パフォーマンス劣化**: 分散システム監視・最適化
-- **データ整合性**: サービス間データ同期戦略
-- **スケーラビリティ**: 個別サービススケーリング準備
-
-#### **協調リスク**
-
-- **エージェント間依存**: インターフェース仕様の早期確定
-- **認識齟齬**: 定期的な仕様確認・ドキュメント更新
-- **進捗差**: 定期モニタリング・早期調整
-- **通信障害**: tmux環境の冗長化・復旧手順
-- **Discord障害**: バックアップ通知システム
-
-#### **人的リスク**
-
-- **レビュー遅延**: 自動エスカレーション機能
-- **仕様変更**: 変更管理プロセス厳格化
-- **知識ギャップ**: エージェント間知識共有促進
-
-### モニタリング・メトリクス
-
-#### **開発進捗メトリクス**
-
-- **スプリント達成率**: 目標80%以上
-- **コミット頻度**: 1日平均2-3コミット/エージェント
-- **PR処理時間**: 平均24時間以内
-- **コードレビュー時間**: 平均4時間以内
-- **サービス別デプロイ頻度**: 週2-3回以上
-
-#### **品質メトリクス**
-
-- **バグ発生率**: 週次10件以下（全サービス合計）
-- **テスト実行時間**: 5分以内（サービス別）
-- **ビルド成功率**: 95%以上
-- **セキュリティスコア**: A評価以上
-- **サービス間API成功率**: 99.5%以上
-
-#### **協調システムメトリクス**
-
-- **エージェント応答時間**: 平均30秒以内
-- **メッセージ処理率**: 99%以上
-- **協調エラー率**: 5%以下
-- **夜間自動処理成功率**: 90%以上
-- **Discord通知成功率**: 99%以上
-- **レビュー期限内完了率**: 95%以上（24時間以内）
-- **レビュー依頼通知成功率**: 99%以上
+- `/docs/operations/quality_standards.md` - 詳細な品質基準・定義・測定方法
+- `/docs/operations/risk_management.md` - リスク分析・対策・監視プロセス  
+- `/docs/operations/monitoring_metrics.md` - 監視指標・アラート・分析手法
 
 ### 成功基準
 
@@ -1179,35 +672,38 @@ Discord通知（オプション）:
 ```mermaid
 graph TD
     %% Phase 1: プロジェクト基盤構築
-    A[PM: プロジェクト開始] --> B[要件定義: ユーザーストーリー作成]
-    B --> C[要件定義: 機能優先順位付け]
-    C --> D[アーキテクト: マイクロサービス設計]
-    C --> E[UX/UI: ワイヤーフレーム作成]
+    A[PM: プロジェクト開始] --> A1[PM: ステークホルダーヒアリング]
+    A1 --> B[要求分析: 議事録解析・構造化]
+    B --> C[要件定義: ユーザーストーリー作成]
+    C --> D[要件定義: 機能優先順位付け]
+    D --> E[アーキテクト: マイクロサービス設計]
+    D --> F[UX/UI: ワイヤーフレーム作成]
     
-    D --> F[データベース: サービス別スキーマ設計]
-    F --> G[バックエンド: サービス別API開発]
-    E --> H[UX/UI: プロトタイプ作成]
+    E --> G[データベース: サービス別スキーマ設計]
+    G --> H[バックエンド: サービス別API開発]
+    F --> I[UX/UI: プロトタイプ作成]
     
     %% Phase 2: マイクロサービス実装
-    G --> I[バックエンド: ユーザーサービス]
-    G --> J[バックエンド: 映画サービス]
-    G --> K[バックエンド: 俳優サービス]
-    G --> L[バックエンド: シーンサービス]
-    G --> M[バックエンド: レビューサービス]
+    H --> J[バックエンド: ユーザーサービス]
+    H --> K[バックエンド: 映画サービス]
+    H --> L[バックエンド: 俳優サービス]
+    H --> M[バックエンド: シーンサービス]
+    H --> N[バックエンド: レビューサービス]
     
-    H --> N[フロントエンド: UI実装開始]
-    I --> O[フロントエンド: サービス統合]
-    J --> O
-    K --> O
-    L --> O
-    M --> O
+    I --> O[フロントエンド: UI実装開始]
+    J --> P[フロントエンド: サービス統合]
+    K --> P
+    L --> P
+    M --> P
+    N --> P
     
     %% Phase 3: テスト・品質保証
-    O --> P[テスト: サービス別テスト]
-    P --> Q[テスト: 統合テスト]
-    Q --> R[セキュリティ: セキュリティ監査]
-    R --> S[DevOps: デプロイ準備]
-    S --> T[DevOps: 本番リリース]
+    O --> Q[テスト: サービス別テスト]
+    P --> Q
+    Q --> R[テスト: 統合テスト]
+    R --> S[セキュリティ: セキュリティ監査]
+    S --> T[DevOps: デプロイ準備]
+    T --> U[DevOps: 本番リリース]
     
     %% スタイリング
     classDef phase1 fill:#e1f5fe
@@ -1215,10 +711,10 @@ graph TD
     classDef phase3 fill:#e8f5e8
     classDef services fill:#fff3e0
     
-    class A,B,C,D,E,F,G,H phase1
-    class I,J,K,L,M,N,O phase2
-    class P,Q,R,S,T phase3
-    class I,J,K,L,M services
+    class A,A1,B,C,D,E,F,G,H,I phase1
+    class J,K,L,M,N,O,P phase2
+    class Q,R,S,T,U phase3
+    class J,K,L,M,N services
 ```
 
 #### **マイクロサービス依存関係図**
@@ -1276,33 +772,23 @@ graph LR
 
 ### 緊急時対応プロトコル
 
-#### **エージェント障害時**
+プロジェクトにおける緊急事態（システム障害、エージェント障害、データ損失等）への迅速な対応体制を確立しています。
 
-```bash
-# エージェント復旧手順
-./scripts/recover_agent.sh <agent_name>
+#### **緊急事態の分類**
 
-# 状態確認
-./scripts/check_agent_health.sh
+- **Critical**: システム全体停止・データ損失（30分以内対応）
+- **High**: 単一サービス障害・開発ブロッカー（4時間以内対応）
+- **Medium**: 軽微な機能不全・パフォーマンス問題（24時間以内対応）
 
-# 緊急時の人間へのエスカレーション
-./scripts/emergency_notify.sh <issue_description>
-# Discord緊急チャンネルへも自動通知
-```
+#### **基本対応フロー**
 
-#### **協調システム障害時**
+1. **即座検出・通知**: 自動監視 + 手動報告 → Discord緊急通知
+2. **影響評価**: 障害範囲・重要度の迅速な判定
+3. **初期対応**: 自動復旧・一時的な代替手段の起動
+4. **本格復旧**: 根本原因分析・完全復旧の実施
+5. **事後改善**: 再発防止策・プロセス改善の実装
 
-1. **自動復旧試行**: tmuxセッション再起動
-2. **バックアップシステム起動**: 簡易メッセージシステム + Discord通知に切り替え
-3. **人間通知**: 重要度Criticalで即座に報告
-4. **代替手段**: 一時的にGitHub Issue/PRベースでの協調
-
-#### **マイクロサービス障害時**
-
-- **サービス分離**: 他サービスへの影響を最小化
-- **自動フェイルオーバー**: ヘルスチェック → 自動復旧
-- **緊急メンテナンスモード**: 該当サービスのみ停止
-- **データ整合性確保**: サービス間データ同期の検証・修復
+**詳細**: `/docs/agents/emergency_procedures.md` - 具体的な障害対応手順と復旧プロセス
 
 ### ドキュメント管理体系
 
@@ -1312,9 +798,31 @@ graph LR
 docs/
 ├── project/
 │   ├── charter.md (本憲章)
-│   ├── requirements.md
-│   ├── user_stories.md
+│   ├── requirements_analysis.md (要求分析書)
+│   ├── requirements_issues.md (矛盾点・課題整理表)
+│   ├── additional_research.md (追加調査項目リスト)
+│   ├── requirements.md (要件定義書)
+│   ├── user_stories.md (ユーザーストーリー)
 │   └── project_plan.md
+├── meetings/
+│   ├── stakeholder_interviews/    # ステークホルダーヒアリング
+│   │   ├── 2025-08-22_initial_interview.md
+│   │   ├── 2025-08-25_follow_up_interview.md
+│   │   ├── 2025-08-28_technical_requirements.md
+│   │   └── template_interview.md  # ヒアリング議事録テンプレート
+│   ├── requirements_sessions/     # 要件確認・変更会議
+│   │   ├── 2025-08-26_requirements_review.md
+│   │   ├── 2025-09-02_requirements_change.md
+│   │   └── template_requirements.md
+│   ├── project_meetings/          # プロジェクト定例会議
+│   │   ├── 2025-08-22_kickoff.md
+│   │   └── weekly_review/
+│   │       ├── 2025-08-28_week1_review.md
+│   │       └── template_weekly.md
+│   └── research_sessions/         # 追加調査・分析会議
+│       ├── 2025-08-27_competitive_analysis.md
+│       ├── 2025-08-30_technical_feasibility.md
+│       └── template_research.md
 ├── architecture/
 │   ├── system_design.md
 │   ├── microservices_design.md
@@ -1333,11 +841,24 @@ docs/
 │   ├── backup_strategy.md
 │   └── troubleshooting.md
 └── agents/
-    ├── coordination_manual.md
+    ├── coordination_protocols.md (エージェント間協調プロトコル)
     ├── agent_responsibilities.md
-    ├── communication_protocols.md
     ├── discord_integration.md
     └── emergency_procedures.md
+
+.claude/
+└── agents/
+    ├── requirements_analysis.md     # Claude Codeサブエージェント定義
+    ├── requirements_definition.md
+    ├── ux_ui_design.md
+    ├── architect.md
+    ├── frontend.md
+    ├── backend.md
+    ├── database.md
+    ├── test.md
+    ├── security.md
+    ├── devops.md
+    └── project_manager.md
 ```
 
 #### **ドキュメント更新ルール**
@@ -1347,6 +868,34 @@ docs/
 - **週次更新**: アーキテクチャドキュメント、運用手順
 - **フェーズ終了時**: 全体的なドキュメント見直し
 - **Discord自動通知**: 重要ドキュメント更新時
+
+#### **議事録管理ルール**
+
+**ファイル命名規則**:
+
+- **フォーマット**: `YYYY-MM-DD_<会議種別>_<補足説明>.md`
+- **例**: `2025-08-22_initial_stakeholder_interview.md`, `2025-08-25_requirements_change_session.md`
+
+**保存場所別管理**:
+
+- **stakeholder_interviews/**: 初回ヒアリング、追加ヒアリング、補完調査
+- **requirements_sessions/**: 要件確認、要件変更、仕様調整会議
+- **research_sessions/**: 競合分析、技術調査、市場調査
+- **project_meetings/**: キックオフ、定例会議、レビュー会議
+
+**議事録必須項目**:
+
+- 日時・参加者・議題
+- 要求・要件に関する発言の構造化記録
+- 決定事項・保留事項・次回アクション
+- 要求分析エージェントが参照しやすい形式での記録
+
+**更新・追記ルール**:
+
+- **即座作成**: 会議終了後24時間以内
+- **追記**: 補足情報があれば既存ファイルに日付付きで追記
+- **要件変更**: 新規ファイル作成 + 関連する過去議事録への参照リンク追加
+- **要求分析エージェント通知**: 新規議事録作成時はPMエージェント経由で通知
 
 #### **学習・改善メカニズム**
 
@@ -1450,24 +999,26 @@ docs/
 
 **承認**: 全エージェントがこの憲章に同意することで、協調開発を開始します。
 
-**バージョン**: 2.0
+**バージョン**: 2.1
 **作成日**: 2025年8月21日
-**更新日**: 2025年8月21日 (マイクロサービス構成・Discord連携・Git戦略追加)
+**更新日**: 2025年8月22日 (要求分析エージェント追加)
 **次回レビュー**: フェーズ1完了時（Week 2終了時）
 
 **主要更新内容**:
 
-- マイクロサービス構成の追加
-- Discord通知システムの統合
-- GitHub Flow + 環境別デプロイ戦略
-- プロダクトレベルのバージョニング戦略
-- サービス別CI/CD設計
-- CODEOWNERS活用によるレビュープロセス
+- **要求分析エージェントの追加** (v2.1)
+- 要件定義プロセスの明確化・構造化
+- エージェント間協調フローの最適化
+- マイクロサービス構成の追加 (v2.0)
+- Discord通知システムの統合 (v2.0)
+- GitHub Flow + 環境別デプロイ戦略 (v2.0)
 
 **憲章承認者**:
 
 - [ ] 人間（プロジェクトオーナー）
 - [ ] プロジェクトマネージャーエージェント
+- [ ] 要求分析エージェント
+- [ ] 要件定義エージェント
 - [ ] アーキテクトエージェント
 - [ ] DevOpsエージェント
 - [ ] その他全エージェント

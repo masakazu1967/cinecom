@@ -1,0 +1,56 @@
+# CODEOWNERS for AI Agent Collaboration
+# 注意: 単一GitHubアカウントのため、自動レビュー割り当ては機能しません
+# このファイルはドキュメント・参照目的で維持されます
+
+# AIエージェント責任分担の記録（参考用）
+# 実際のレビューは自己チェックリストで実施
+
+# === ドキュメント ===
+# 担当: 全エージェント（共通責任）
+docs/ # ドキュメント更新時は関連エージェントが確認
+*.md # README、設計書等
+
+# === フロントエンド ===
+# 担当: Frontend Agent
+frontend/ # Next.js アプリケーション
+*.js # JavaScript files
+*.ts # TypeScript files 
+*.tsx # React TSX components
+*.jsx # React JSX components
+
+# === バックエンド ===
+# 担当: Backend Agent
+backend/ # 統合NestJSサービス
+services/ # 個別サービス（将来分離時）
+
+# === データベース ===
+# 担当: Database Agent
+*/migrations/ # データベースマイグレーション
+*/entities/ # TypeORMエンティティ
+*.sql # SQLスクリプト
+
+# === インフラ・DevOps ===
+# 担当: DevOps Agent
+.github/ # GitHub Actions、設定
+docker/ # Docker設定
+docker-compose*.yml # Docker Compose設定
+Dockerfile # Docker設定
+
+# === 設定ファイル ===
+# 担当: 該当エージェント
+package.json # 依存関係管理
+tsconfig.json # TypeScript設定
+.eslintrc* # Lint設定
+.prettierrc* # フォーマット設定
+
+# === 重要な設定ファイル（複数エージェント確認推奨） ===
+.github/workflows/ # CI/CD設定
+.github/dependabot.yml # 依存関係更新
+.env.example # 環境変数テンプレート
+sonar-project.properties # コード品質設定
+
+# === テスト ===
+# 担当: Test Agent + 該当機能エージェント
+**/*.test.* # テストファイル
+**/*.spec.* # 仕様テストファイル
+**/e2e/ # E2Eテスト

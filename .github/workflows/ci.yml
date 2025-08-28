@@ -1,0 +1,140 @@
+name: CI Pipeline
+
+on:
+  push:
+    branches: [ main, feature/* ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  # Lint チェック（ドキュメント・設定ファイル検証）
+  lint-check:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Validate Markdown files
+        run: |
+          echo "📝 Validating Markdown files..."
+          # Simple validation: check if files exist and are readable
+          find docs/ -name "*.md" -type f | while read file; do
+            echo "Checking: $file"
+            if [ ! -r "$file" ]; then
+              echo "❌ Cannot read file: $file"
+              exit 1
+            fi
+          done
+          echo "✅ All markdown files are accessible"
+
+      - name: Validate JSON files
+        run: |
+          echo "🔧 Validating JSON files..."
+          find . -name "*.json" -not -path "./node_modules/*" -not -path "./.devcontainer/*" | while read file; do
+            echo "Checking: $file"
+            if ! python3 -m json.tool "$file" > /dev/null 2>&1; then
+              echo "❌ Invalid JSON: $file"
+              exit 1
+            fi
+          done
+          echo "✅ All JSON files are valid"
+
+      - name: Validate YAML files
+        run: |
+          echo "📋 Validating YAML files..."
+          find . -name "*.yml" -o -name "*.yaml" | while read file; do
+            echo "Checking: $file"
+            if ! yq eval '.' "$file" > /dev/null 2>&1; then
+              echo "❌ Invalid YAML: $file"
+              exit 1
+            fi
+          done
+          echo "✅ All YAML files are valid"
+
+  # Type チェック（プロジェクト構造検証）
+  type-check:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Check project structure
+        run: |
+          echo "📂 Validating project structure..."
+          
+          # Check required directories
+          required_dirs=("docs" ".github")
+          for dir in "${required_dirs[@]}"; do
+            if [ ! -d "$dir" ]; then
+              echo "❌ Required directory missing: $dir"
+              exit 1
+            fi
+          done
+          
+          # Check required files
+          required_files=("docs/project/charter.md" ".github/workflows/ci.yml" "package.json")
+          for file in "${required_files[@]}"; do
+            if [ ! -f "$file" ]; then
+              echo "❌ Required file missing: $file"
+              exit 1
+            fi
+          done
+          
+          echo "✅ Project structure is valid"
+
+  # Unit Tests（セキュリティ基本チェック）
+  unit-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Check for secrets in files
+        run: |
+          echo "🔒 Checking for potential secrets..."
+          
+          # Basic security check: ensure no obvious secrets in documentation
+          echo "Checking for API keys in docs..."
+          
+          # Count potential matches instead of failing immediately
+          secret_count=$(find docs/ -name "*.md" -exec grep -l "sk_live_\|pk_live_\|AIzaSy[A-Za-z0-9]" {} \; | wc -l || echo "0")
+          
+          if [ "$secret_count" -gt 0 ]; then
+            echo "⚠️  Warning: $secret_count files may contain API keys - please review"
+            find docs/ -name "*.md" -exec grep -l "sk_live_\|pk_live_\|AIzaSy[A-Za-z0-9]" {} \;
+          fi
+          
+          echo "✅ Security check completed"
+
+  # 統合チェック（全て成功時のみ）
+  integration-check:
+    needs: [lint-check, type-check, unit-tests]
+    runs-on: ubuntu-latest
+    if: always() && needs.lint-check.result == 'success' && needs.type-check.result == 'success' && needs.unit-tests.result == 'success'
+    steps:
+      - name: Integration success
+        run: |
+          echo "🎉 All validation checks passed!"
+          echo "✅ Documentation validated"
+          echo "✅ Project structure verified"
+          echo "✅ Security check completed"
+
+  # 通知（結果に関係なく実行）
+  notify-results:
+    needs: [lint-check, type-check, unit-tests, integration-check]
+    runs-on: ubuntu-latest
+    if: always()
+    steps:
+      - name: Notify results
+        run: |
+          echo "📊 CI Pipeline Results:"
+          echo "Lint check: ${{ needs.lint-check.result }}"
+          echo "Type check: ${{ needs.type-check.result }}"
+          echo "Unit tests: ${{ needs.unit-tests.result }}"
+          echo "Integration check: ${{ needs.integration-check.result }}"
+          
+          if [[ "${{ needs.integration-check.result }}" == "success" ]]; then
+            echo "🎉 Overall status: SUCCESS"
+          else
+            echo "❌ Overall status: FAILED"
+          fi

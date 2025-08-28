@@ -1,0 +1,137 @@
+name: Technical Task
+description: Create a technical task for development work
+title: "[Tech] "
+labels: ["tech-task", "development"]
+assignees: []
+
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Use this template for technical tasks, refactoring, infrastructure work, or other development activities.
+
+  - type: dropdown
+    id: task-type
+    attributes:
+      label: Task Type
+      description: What type of technical task is this?
+      options:
+        - Architecture/Design
+        - Backend Development
+        - Frontend Development
+        - Database/Migration
+        - DevOps/Infrastructure
+        - Testing
+        - Security
+        - Performance Optimization
+        - Refactoring
+        - Documentation
+        - Bug Fix
+        - Code Review
+    validations:
+      required: true
+
+  - type: input
+    id: component
+    attributes:
+      label: Component/Service
+      description: Which component or service does this task relate to?
+      placeholder: "e.g., user-service, movie-service, frontend, CI/CD pipeline"
+    validations:
+      required: true
+
+  - type: textarea
+    id: task-description
+    attributes:
+      label: Task Description
+      description: Detailed description of what needs to be done
+      placeholder: Describe the technical work that needs to be completed...
+    validations:
+      required: true
+
+  - type: textarea
+    id: acceptance-criteria
+    attributes:
+      label: Acceptance Criteria
+      description: Define what "done" looks like for this task
+      placeholder: |
+        - [ ] Specific deliverable 1
+        - [ ] Specific deliverable 2
+        - [ ] Testing completed
+        - [ ] Documentation updated
+    validations:
+      required: true
+
+  - type: textarea
+    id: technical-requirements
+    attributes:
+      label: Technical Requirements
+      description: Specific technical requirements or constraints
+      placeholder: |
+        - Technology stack requirements
+        - Performance criteria
+        - Security requirements
+        - Integration points
+
+  - type: textarea
+    id: dependencies
+    attributes:
+      label: Dependencies
+      description: Other tasks or components this work depends on
+      placeholder: |
+        - Depends on completion of #123
+        - Requires API changes in movie-service
+        - Needs database migration
+
+  - type: checkboxes
+    id: priority
+    attributes:
+      label: Priority
+      description: Task priority level
+      options:
+        - label: Critical - Blocks other work
+        - label: High - Important for current milestone
+        - label: Medium - Should be completed soon
+        - label: Low - Can be deferred
+
+  - type: input
+    id: estimated-effort
+    attributes:
+      label: Estimated Effort
+      description: Rough estimate of time/effort required
+      placeholder: "e.g., 2 days, 1 week, 3 story points"
+
+  - type: textarea
+    id: implementation-notes
+    attributes:
+      label: Implementation Notes
+      description: Any specific implementation guidance or approach
+      placeholder: Technical approach, patterns to use, things to avoid...
+
+  - type: textarea
+    id: testing-strategy
+    attributes:
+      label: Testing Strategy
+      description: How should this work be tested?
+      placeholder: |
+        - Unit tests for...
+        - Integration tests for...
+        - Manual testing steps...
+
+  - type: textarea
+    id: risks-considerations
+    attributes:
+      label: Risks and Considerations
+      description: Potential risks or important considerations
+      placeholder: Potential challenges, breaking changes, rollback plans...
+
+  - type: textarea
+    id: definition-of-done
+    attributes:
+      label: Definition of Done
+      description: Specific criteria that must be met before this task can be closed
+      placeholder: |
+        - [ ] Code implemented and reviewed
+        - [ ] Tests written and passing
+        - [ ] Documentation updated
+        - [ ] Deployed to staging/production

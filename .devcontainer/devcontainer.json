@@ -58,7 +58,9 @@
         "marp-team.marp-vscode",
         "Serhioromano.vscode-gitflow",
         "cweijan.vscode-database-client2",
-        "Anthropic.claude-code"
+        "Anthropic.claude-code",
+        "SonarSource.sonarlint-vscode",
+        "GitHub.vscode-github-actions"
       ]
     }
   },
