@@ -220,3 +220,5 @@ vendor/
 # MongoDB specific
 *.mongodb.js
 *.mongodb.json
+
+.claude/settings.local.json

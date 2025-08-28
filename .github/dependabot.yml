@@ -11,9 +11,53 @@ updates:
     reviewers:
       - "@me"
 
-  # Backend service dependencies (統合サービス構成)
+  # Actor Backend service dependencies
   - package-ecosystem: "npm"
-    directory: "/backend"
+    directory: "/backend/actor-service"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 5
+    assignees:
+      - "@me"
+    reviewers:
+      - "@me"
+
+  # Movie Backend service dependencies
+  - package-ecosystem: "npm"
+    directory: "/backend/movie-service"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 5
+    assignees:
+      - "@me"
+    reviewers:
+      - "@me"
+
+  # Review Backend service dependencies
+  - package-ecosystem: "npm"
+    directory: "/backend/review-service"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 5
+    assignees:
+      - "@me"
+    reviewers:
+      - "@me"
+
+  # Scene Backend service dependencies
+  - package-ecosystem: "npm"
+    directory: "/backend/scene-service"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 5
+    assignees:
+      - "@me"
+    reviewers:
+      - "@me"
+
+  # User Backend service dependencies
+  - package-ecosystem: "npm"
+    directory: "/backend/user-service"
     schedule:
       interval: "weekly"
     open-pull-requests-limit: 5
@@ -24,7 +68,7 @@ updates:
 
   # Docker dependencies
   - package-ecosystem: "docker"
-    directory: "/"
+    directory: "/frontend"
     schedule:
       interval: "monthly"
     open-pull-requests-limit: 3

@@ -21,7 +21,7 @@ sudo apt install -y git-flow
 
 npm install -g @anthropic-ai/claude-code
 
-sudo apt install -y tmux vim
+sudo apt install -y tmux vim xclip
 
 # テスト用データベースのSQLite3をインストールする
 sudo apt install -y sqlite3
