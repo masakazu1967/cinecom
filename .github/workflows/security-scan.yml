@@ -46,10 +46,10 @@ jobs:
     runs-on: ubuntu-latest
     needs: detect-changes
     if: |
-      needs.detect-changes.outputs.backend == 'true' || 
+      needs.detect-changes.outputs.backend == 'true' ||
       needs.detect-changes.outputs.frontend == 'true' ||
       needs.detect-changes.outputs.config == 'true'
-    
+
     permissions:
       actions: read
       contents: read
@@ -81,7 +81,7 @@ jobs:
     runs-on: ubuntu-latest
     needs: detect-changes
     if: |
-      needs.detect-changes.outputs.backend == 'true' || 
+      needs.detect-changes.outputs.backend == 'true' ||
       needs.detect-changes.outputs.frontend == 'true'
 
     strategy:
@@ -114,18 +114,33 @@ jobs:
             echo "exists=false" >> $GITHUB_OUTPUT
           fi
 
-      - name: Debug - Check pnpm-lock.yaml
+      - name: Debug - Check pnpm-lock.yaml and pnpm version
         if: steps.check-service.outputs.exists == 'true'
         run: |
+          echo "=== Debug Information ==="
           echo "Current directory: $(pwd)"
-          echo "Files in root:"
-          ls -la
-          echo "Checking pnpm-lock.yaml:"
-          ls -la pnpm-lock.yaml || echo "pnpm-lock.yaml not found"
-          
+          echo "PNPM version: $(pnpm --version)"
+          echo "Node version: $(node --version)"
+          echo ""
+          echo "=== Files in root ==="
+          ls -la | head -20
+          echo ""
+          echo "=== pnpm-lock.yaml details ==="
+          if [ -f "pnpm-lock.yaml" ]; then
+            echo "pnpm-lock.yaml exists:"
+            ls -la pnpm-lock.yaml
+            echo "First few lines:"
+            head -10 pnpm-lock.yaml
+          else
+            echo "pnpm-lock.yaml NOT FOUND"
+          fi
+          echo ""
+          echo "=== Package.json packageManager ==="
+          grep -A2 -B2 "packageManager" package.json || echo "packageManager not found"
+
       - name: Install dependencies
         if: steps.check-service.outputs.exists == 'true'
-        run: pnpm install --no-frozen-lockfile
+        run: pnpm install --frozen-lockfile
 
       - name: Run pnpm audit
         if: steps.check-service.outputs.exists == 'true'
@@ -133,10 +148,10 @@ jobs:
         run: |
           echo "🔍 Running security audit for ${{ matrix.service.name }}"
           pnpm audit --audit-level=high --json > audit-report.json || true
-          
+
           # 高・重大レベルの脆弱性をチェック
           VULNERABILITIES=$(jq -r '.advisories | length' audit-report.json 2>/dev/null || echo "0")
-          
+
           if [ "$VULNERABILITIES" -gt 0 ]; then
             echo "⚠️ Found $VULNERABILITIES high/critical vulnerabilities in ${{ matrix.service.name }}"
             jq -r '.advisories[] | "- \(.title) (Severity: \(.severity))"' audit-report.json
@@ -159,7 +174,7 @@ jobs:
     runs-on: ubuntu-latest
     needs: detect-changes
     if: |
-      needs.detect-changes.outputs.backend == 'true' || 
+      needs.detect-changes.outputs.backend == 'true' ||
       needs.detect-changes.outputs.frontend == 'true' ||
       needs.detect-changes.outputs.config == 'true'
 
@@ -182,7 +197,7 @@ jobs:
     runs-on: ubuntu-latest
     needs: detect-changes
     if: |
-      needs.detect-changes.outputs.backend == 'true' || 
+      needs.detect-changes.outputs.backend == 'true' ||
       needs.detect-changes.outputs.frontend == 'true'
 
     strategy:
@@ -217,21 +232,21 @@ jobs:
 
       - name: Install dependencies
         if: steps.check-service.outputs.exists == 'true'
-        run: pnpm install --no-frozen-lockfile
+        run: pnpm install --frozen-lockfile
 
       - name: Run ESLint security rules
         if: steps.check-service.outputs.exists == 'true'
         working-directory: ${{ matrix.service.path }}
         run: |
           echo "🔍 Running ESLint security checks for ${{ matrix.service.name }}"
-          
+
           # セキュリティ関連のESLintルールを実行
           if [ -f ".eslintrc.js" ] || [ -f ".eslintrc.json" ] || [ -f "eslint.config.js" ] || [ -f "eslint.config.mjs" ]; then
             pnpm run lint --format=json --output-file=eslint-security-report.json || true
-            
+
             # セキュリティ関連の警告・エラーをチェック
             SECURITY_ISSUES=$(jq '[.[] | select(.messages[].ruleId | test("security|no-eval|no-implied-eval"))] | length' eslint-security-report.json 2>/dev/null || echo "0")
-            
+
             if [ "$SECURITY_ISSUES" -gt 0 ]; then
               echo "⚠️ Found $SECURITY_ISSUES security-related ESLint issues in ${{ matrix.service.name }}"
               echo "::warning::${{ matrix.service.name }} has $SECURITY_ISSUES security-related ESLint issues"
@@ -299,7 +314,7 @@ jobs:
     runs-on: ubuntu-latest
     needs: [codeql-analysis, dependency-scan, secret-scan, eslint-security, container-scan]
     if: always()
-    
+
     permissions:
       actions: read
       contents: read
@@ -318,11 +333,11 @@ jobs:
           echo "**ブランチ**: ${{ github.ref_name }}" >> security-summary.md
           echo "**コミット**: ${{ github.sha }}" >> security-summary.md
           echo "" >> security-summary.md
-          
+
           # 各スキャンの結果をチェック
           echo "## スキャン結果" >> security-summary.md
           echo "" >> security-summary.md
-          
+
           # CodeQL
           if [ "${{ needs.codeql-analysis.result }}" = "success" ]; then
             echo "✅ **CodeQL分析**: 完了" >> security-summary.md
@@ -331,7 +346,7 @@ jobs:
           else
             echo "⏭️ **CodeQL分析**: スキップ" >> security-summary.md
           fi
-          
+
           # 依存関係スキャン
           if [ "${{ needs.dependency-scan.result }}" = "success" ]; then
             echo "✅ **依存関係スキャン**: 完了" >> security-summary.md
@@ -340,7 +355,7 @@ jobs:
           else
             echo "⏭️ **依存関係スキャン**: スキップ" >> security-summary.md
           fi
-          
+
           # シークレット検出
           if [ "${{ needs.secret-scan.result }}" = "success" ]; then
             echo "✅ **シークレット検出**: 完了" >> security-summary.md
@@ -349,7 +364,7 @@ jobs:
           else
             echo "⏭️ **シークレット検出**: スキップ" >> security-summary.md
           fi
-          
+
           # ESLint セキュリティ
           if [ "${{ needs.eslint-security.result }}" = "success" ]; then
             echo "✅ **ESLint セキュリティ**: 完了" >> security-summary.md
@@ -358,7 +373,7 @@ jobs:
           else
             echo "⏭️ **ESLint セキュリティ**: スキップ" >> security-summary.md
           fi
-          
+
           # コンテナスキャン
           if [ "${{ needs.container-scan.result }}" = "success" ]; then
             echo "✅ **コンテナスキャン**: 完了" >> security-summary.md
@@ -367,16 +382,16 @@ jobs:
           else
             echo "⏭️ **コンテナスキャン**: スキップ" >> security-summary.md
           fi
-          
+
           echo "" >> security-summary.md
           echo "## 推奨アクション" >> security-summary.md
           echo "" >> security-summary.md
-          
+
           # 失敗したジョブがある場合の推奨アクション
-          if [ "${{ needs.codeql-analysis.result }}" = "failure" ] || 
-             [ "${{ needs.dependency-scan.result }}" = "failure" ] || 
-             [ "${{ needs.secret-scan.result }}" = "failure" ] || 
-             [ "${{ needs.eslint-security.result }}" = "failure" ] || 
+          if [ "${{ needs.codeql-analysis.result }}" = "failure" ] ||
+             [ "${{ needs.dependency-scan.result }}" = "failure" ] ||
+             [ "${{ needs.secret-scan.result }}" = "failure" ] ||
+             [ "${{ needs.eslint-security.result }}" = "failure" ] ||
              [ "${{ needs.container-scan.result }}" = "failure" ]; then
             echo "🚨 **緊急**: 検出された脆弱性または問題を確認し、修正してください。" >> security-summary.md
             echo "" >> security-summary.md
@@ -386,7 +401,7 @@ jobs:
           else
             echo "🎉 すべてのセキュリティスキャンが正常に完了しました！" >> security-summary.md
           fi
-          
+
           # サマリーをファイルに保存
           cat security-summary.md
 
@@ -404,7 +419,7 @@ jobs:
           script: |
             const fs = require('fs');
             const summary = fs.readFileSync('security-summary.md', 'utf8');
-            
+
             github.rest.issues.createComment({
               issue_number: context.issue.number,
               owner: context.repo.owner,
