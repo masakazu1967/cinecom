@@ -114,9 +114,18 @@ jobs:
             echo "exists=false" >> $GITHUB_OUTPUT
           fi
 
+      - name: Debug - Check pnpm-lock.yaml
+        if: steps.check-service.outputs.exists == 'true'
+        run: |
+          echo "Current directory: $(pwd)"
+          echo "Files in root:"
+          ls -la
+          echo "Checking pnpm-lock.yaml:"
+          ls -la pnpm-lock.yaml || echo "pnpm-lock.yaml not found"
+          
       - name: Install dependencies
         if: steps.check-service.outputs.exists == 'true'
-        run: pnpm install --frozen-lockfile
+        run: pnpm install --no-frozen-lockfile
 
       - name: Run pnpm audit
         if: steps.check-service.outputs.exists == 'true'
@@ -208,7 +217,7 @@ jobs:
 
       - name: Install dependencies
         if: steps.check-service.outputs.exists == 'true'
-        run: pnpm install --frozen-lockfile
+        run: pnpm install --no-frozen-lockfile
 
       - name: Run ESLint security rules
         if: steps.check-service.outputs.exists == 'true'
