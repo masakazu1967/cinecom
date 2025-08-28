@@ -14,69 +14,7 @@
 
 本プロジェクトは**ドメイン駆動設計(DDD)**と**クリーンアーキテクチャ**を採用し、ビジネスロジックの保護と技術的関心事の分離を実現しています。
 
-### モジュール構造
-
-#### 1. プロジェクト分割方針
-
-- **ドメイン層 + アプリケーション層**: 同一プロジェクト内に配置
-  - ビジネスルールとユースケースの密接な関係を考慮
-  - ドメインサービスとアプリケーションサービス間の効率的な連携
-
-- **インフラストラクチャ層**: 技術スタック別にプロジェクト分割
-  - データベース技術（PostgreSQL、MySQL等）
-  - 外部API連携
-  - メッセージング（RabbitMQ、Redis等）
-  - ファイルストレージ等
-
-#### 2. 依存関係の方向
-
-```
-┌─────────────────────────────────────┐
-│          プレゼンテーション層        │
-│        (Web API, GraphQL)          │
-└─────────────────┬───────────────────┘
-                  │
-┌─────────────────▼───────────────────┐
-│          アプリケーション層          │
-│       (UseCase, Service)           │
-└─────────────────┬───────────────────┘
-                  │
-┌─────────────────▼───────────────────┐
-│            ドメイン層                │
-│    (Entity, ValueObject, Service)  │
-└─────────────────────────────────────┘
-                  ▲
-┌─────────────────┴───────────────────┐
-│        インフラストラクチャ層        │
-│    (Repository, ExternalAPI)       │
-│      技術スタック別プロジェクト      │
-└─────────────────────────────────────┘
-```
-
-#### 3. プロジェクト構成例
-
-```
-cinecom/
-├── core/                    # ドメイン + アプリケーション層
-│   ├── domain/
-│   │   ├── entities/
-│   │   ├── value-objects/
-│   │   ├── services/
-│   │   └── repositories/    # インターfaces
-│   └── application/
-│       ├── usecases/
-│       ├── services/
-│       └── dto/
-├── infrastructure/
-│   ├── database-postgres/   # PostgreSQL実装
-│   ├── database-mysql/      # MySQL実装
-│   ├── messaging-redis/     # Redis実装
-│   ├── storage-s3/         # S3実装
-│   └── external-api/       # 外部API実装
-└── presentation/
-    ├── web-api/            # REST API
-    └── graphql/            # GraphQL API
-```
+ドメイン駆動設計(DDD)とクリーンアーキテクチャの原則に従い、ビジネスロジックを技術的関心事から分離します。
 
 ## 1. ドメイン層設計原則
 
@@ -905,6 +843,7 @@ export class TypeOrmMovieRepository implements MovieRepository {
 
 ## 5. 関連ドキュメント
 
+- **プロジェクト構造**: `/docs/architecture/project_structure.md` - マイクロサービス・モノレポ構成
 - **コーディング規約**: `/docs/development/coding_standards.md` - 基本的なコーディングルール
 - **システム設計**: `/docs/architecture/system_design_template.md` - 全体アーキテクチャ
 - **テスト戦略**: `/docs/development/testing_strategy.md` - ドメインテスト手法
