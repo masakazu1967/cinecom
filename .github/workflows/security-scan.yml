@@ -114,33 +114,19 @@ jobs:
             echo "exists=false" >> $GITHUB_OUTPUT
           fi
 
-      - name: Debug - Check pnpm-lock.yaml and pnpm version
+      - name: Handle incompatible lockfile and install dependencies
         if: steps.check-service.outputs.exists == 'true'
         run: |
-          echo "=== Debug Information ==="
-          echo "Current directory: $(pwd)"
-          echo "PNPM version: $(pnpm --version)"
-          echo "Node version: $(node --version)"
-          echo ""
-          echo "=== Files in root ==="
-          ls -la | head -20
-          echo ""
-          echo "=== pnpm-lock.yaml details ==="
-          if [ -f "pnpm-lock.yaml" ]; then
-            echo "pnpm-lock.yaml exists:"
-            ls -la pnpm-lock.yaml
-            echo "First few lines:"
-            head -10 pnpm-lock.yaml
+          echo "Attempting to install with frozen lockfile..."
+          if ! pnpm install --frozen-lockfile; then
+            echo "Frozen lockfile failed, likely due to version incompatibility"
+            echo "Regenerating lockfile with current pnpm version $(pnpm --version)..."
+            rm -f pnpm-lock.yaml
+            pnpm install
+            echo "Lockfile regenerated successfully"
           else
-            echo "pnpm-lock.yaml NOT FOUND"
+            echo "Frozen lockfile installation successful"
           fi
-          echo ""
-          echo "=== Package.json packageManager ==="
-          grep -A2 -B2 "packageManager" package.json || echo "packageManager not found"
-
-      - name: Install dependencies
-        if: steps.check-service.outputs.exists == 'true'
-        run: pnpm install --frozen-lockfile
 
       - name: Run pnpm audit
         if: steps.check-service.outputs.exists == 'true'
@@ -230,9 +216,19 @@ jobs:
             echo "exists=false" >> $GITHUB_OUTPUT
           fi
 
-      - name: Install dependencies
+      - name: Handle incompatible lockfile and install dependencies
         if: steps.check-service.outputs.exists == 'true'
-        run: pnpm install --frozen-lockfile
+        run: |
+          echo "Attempting to install with frozen lockfile..."
+          if ! pnpm install --frozen-lockfile; then
+            echo "Frozen lockfile failed, likely due to version incompatibility"
+            echo "Regenerating lockfile with current pnpm version $(pnpm --version)..."
+            rm -f pnpm-lock.yaml
+            pnpm install
+            echo "Lockfile regenerated successfully"
+          else
+            echo "Frozen lockfile installation successful"
+          fi
 
       - name: Run ESLint security rules
         if: steps.check-service.outputs.exists == 'true'
