@@ -22,7 +22,7 @@ jobs:
       frontend: ${{ steps.changes.outputs.frontend }}
       config: ${{ steps.changes.outputs.config }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
         with:
           fetch-depth: 0
 
@@ -62,7 +62,7 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Initialize CodeQL
         uses: github/codeql-action/init@v3
@@ -95,7 +95,7 @@ jobs:
           - { name: 'frontend', path: 'frontend' }
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -165,7 +165,7 @@ jobs:
       needs.detect-changes.outputs.config == 'true'
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
         with:
           fetch-depth: 0
 
@@ -197,7 +197,7 @@ jobs:
           - { name: 'frontend', path: 'frontend' }
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -273,7 +273,7 @@ jobs:
         service: ['user-service', 'movie-service', 'actor-service', 'scene-service', 'review-service']
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       - name: Check if Dockerfile exists
         id: check-dockerfile
