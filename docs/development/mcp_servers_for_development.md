@@ -87,6 +87,15 @@ Model Context Protocol (MCP) Serverは、AI開発環境とExternal Tools・Data 
 - コミット履歴分析
 - プルリクエスト最適化
 
+#### 10. **context7**
+
+**概要**: 高度なコンテキスト管理・開発支援
+
+- プロジェクト全体のコンテキスト理解
+- 複雑な依存関係の可視化
+- 開発フローの最適化
+- インテリジェントなコード提案
+
 ## 導入方法
 
 ### Claude Codeでの基本導入
@@ -133,6 +142,13 @@ npm install -g @playwright/mcp
 claude mcp add --transport stdio playwright "playwright-mcp"
 ```
 
+#### 4. context7導入
+
+```bash
+# context7 MCP Server導入
+claude mcp add --transport stdio context7 "context7"
+```
+
 ## 設定方法
 
 ### 1. 環境変数設定
@@ -163,6 +179,10 @@ MCP_SERVER_PORT=3001
     "nestjs": {
       "command": "npx",
       "args": ["mcp-nestjs"],
+      "transport": "stdio"
+    },
+    "context7": {
+      "command": "context7",
       "transport": "stdio"
     }
   }
@@ -226,12 +246,14 @@ services:
 2. **mcp-postgres** + **mcp-docker** - 環境管理
 3. **mcp-nextjs** + **mcp-nestjs** - 開発効率化
 4. **mcp-playwright** - テスト自動化
+5. **context7** - 高度なコンテキスト管理
 
 #### 2. **統合活用**
 
-- **フロントエンド開発**: mcp-nextjs + npm-package-docs-mcp
-- **バックエンド開発**: mcp-nestjs + mcp-postgres + mcp-redis
+- **フロントエンド開発**: mcp-nextjs + npm-package-docs-mcp + context7
+- **バックエンド開発**: mcp-nestjs + mcp-postgres + mcp-redis + context7
 - **E2Eテスト**: mcp-playwright + mcp-docker
+- **プロジェクト全体管理**: mcp-serena + context7
 
 #### 3. **トラブルシューティング**
 
