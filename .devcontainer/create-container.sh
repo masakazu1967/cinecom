@@ -19,7 +19,7 @@ sudo apt upgrade -y
 
 sudo apt install -y git-flow
 
-pnpm add -g @anthropic-ai/claude-code
+npm install -g @anthropic-ai/claude-code
 
 sudo apt install -y tmux vim xclip
 
@@ -44,3 +44,6 @@ rm evans_linux_arm64.tar.gz
 
 # uvのインストール (Serena MCP Serverで使用する)
 curl -LsSf https://astral.sh/uv/install.sh | sh
+
+# jekyllのインストール
+gem install jekyll bundler
