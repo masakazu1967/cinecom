@@ -19,7 +19,7 @@ sudo apt upgrade -y
 
 sudo apt install -y git-flow
 
-npm install -g @anthropic-ai/claude-code
+pnpm add -g @anthropic-ai/claude-code
 
 sudo apt install -y tmux vim xclip
 
@@ -41,3 +41,6 @@ curl -OL https://github.com/ktr0731/evans/releases/download/v0.10.11/evans_linux
 tar zxvf evans_linux_arm64.tar.gz
 sudo mv evans /usr/local/bin
 rm evans_linux_arm64.tar.gz
+
+# uvのインストール (Serena MCP Serverで使用する)
+curl -LsSf https://astral.sh/uv/install.sh | sh
