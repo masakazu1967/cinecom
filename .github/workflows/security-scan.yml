@@ -11,7 +11,7 @@ on:
     - cron: '0 17 * * *'
 
 env:
-  NODE_VERSION: '22'
+  NODE_VERSION: '24'
 
 jobs:
   # 変更検出
