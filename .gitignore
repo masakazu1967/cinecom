@@ -223,3 +223,6 @@ vendor/
 
 .claude/settings.local.json
 .serena/
+
+# Obsidian specific
+.obsidian/
