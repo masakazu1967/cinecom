@@ -21,6 +21,7 @@
     "setup": "pnpm install && pnpm docker:up",
     "frontend": "pnpm --filter '@cinecom/frontend'",
     "shared": "pnpm --filter '@cinecom/shared'",
+    "typeorm-scene": "pnpm --filter '@cinecom/typeorm-scene'",
     "user-service": "pnpm --filter '@cinecom/user-service'",
     "movie-service": "pnpm --filter '@cinecom/movie-service'",
     "actor-service": "pnpm --filter '@cinecom/actor-service'",

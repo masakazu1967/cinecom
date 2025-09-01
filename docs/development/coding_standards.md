@@ -121,7 +121,39 @@ src/
     └── ErrorMessages.ts      // ERROR_MESSAGES など
 ```
 
-### 2.3 import/export 規約
+### 2.3 モジュール命名規約
+
+#### ドメイン・アプリケーション層
+
+- 配置場所: `packages/` フォルダ
+- プロジェクト名: `@cinecom/{domain}`
+- モジュールクラス: `{Domain}Module`
+- 例：シーンドメイン
+  - プロジェクト: `packages/scene`
+  - プロジェクト名: `@cinecom/scene`
+  - モジュールクラス: `SceneModule`
+
+#### プレゼンテーション層
+
+- 配置場所: `backend/` フォルダ
+- プロジェクト名: `@cinecom/{domain}-service`
+- モジュールクラス: `{Domain}ServiceModule`
+- 例：シーンのREST API
+  - プロジェクト: `backend/scene-service`
+  - プロジェクト名: `@cinecom/scene-service`
+  - モジュールクラス: `SceneServiceModule`
+
+#### インフラストラクチャ層
+
+- 配置場所: `packages/` フォルダ
+- プロジェクト名: `@cinecom/{tech-stack}-{domain}`
+- モジュールクラス: `{TechStack}{Domain}Module`
+- 例：TypeORMのシーン
+  - プロジェクト: `packages/typeorm-scene`
+  - プロジェクト名: `@cinecom/typeorm-scene`
+  - モジュールクラス: `TypeOrmSceneModule`
+
+### 2.4 import/export 規約
 
 #### import順序
 
