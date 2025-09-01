@@ -20,6 +20,7 @@
     "docker:logs": "docker-compose -f docker-compose.dev.yml logs -f",
     "setup": "pnpm install && pnpm docker:up",
     "frontend": "pnpm --filter '@cinecom/frontend'",
+    "shared": "pnpm --filter '@cinecom/shared'",
     "user-service": "pnpm --filter '@cinecom/user-service'",
     "movie-service": "pnpm --filter '@cinecom/movie-service'",
     "actor-service": "pnpm --filter '@cinecom/actor-service'",

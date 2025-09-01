@@ -69,6 +69,10 @@ interface IUserRepository { ... } // 悪い
 
 ### 2.2 ファイル・ディレクトリ命名
 
+- ディレクトリ名はケバブケース
+- マークダウンのファイル名はスネークケース
+- Typescriptのファイル名はパスカルケース
+
 ```bash
 // ファイル名: 定義する名前と同じ（PascalCase）
 UserService.ts        // class UserService
@@ -352,7 +356,7 @@ class ConflictError extends InfrastructureError {
 
 class DatabaseConstraintError extends InfrastructureError {
   constructor(
-    message: string, 
+    message: string,
     public constraintName: string,
     public constraintType: 'UNIQUE' | 'FOREIGN_KEY' | 'CHECK' | 'NOT_NULL'
   ) {
@@ -371,8 +375,8 @@ async function validateUserInApplicationLayer(data: unknown): Promise<User> {
     // ライブラリエラーをアプリケーションエラーに変換
     if (error.isJoi) {
       throw new ValidationError(
-        'Invalid user data', 
-        error.details[0].path[0], 
+        'Invalid user data',
+        error.details[0].path[0],
         'VALIDATION_FAILED'
       );
     }
@@ -566,7 +570,7 @@ export class MoviesController {
       releaseDate: new Date(createMovieDto.releaseDate),
       genreIds: createMovieDto.genreIds
     };
-    
+
     // アプリケーション層からのエラーをそのまま受け取り
     // Exception Filterで適切なHTTPステータスに変換される
     return this.moviesService.create(createMovieCommand);
@@ -619,17 +623,17 @@ export class MoviesService {
       // インフラ層への永続化
       // InfrastructureErrorが発生した場合はそのまま伝播
       return await this.movieRepository.save(movie);
-      
+
     } catch (error) {
       // ドメインエラーやインフラエラーはプレゼンテーション層に直接伝播
       if (error instanceof DomainError || error instanceof InfrastructureError) {
         throw error;
       }
-      
+
       // 予期しないエラーのみアプリケーションエラーに変換
       throw new ApplicationError(
-        'Failed to create movie due to unexpected error', 
-        'CREATE_FAILED', 
+        'Failed to create movie due to unexpected error',
+        'CREATE_FAILED',
         { originalError: error.message }
       );
     }
