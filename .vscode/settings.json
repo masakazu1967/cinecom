@@ -1,18 +1,11 @@
 {
-  "editor.formatOnSave": true,
-  "editor.codeActionsOnSave": {
-    "source.fixAll.eslint": "explicit",
-    "source.organizeImports": "explicit"
-  },
-  "editor.defaultFormatter": "esbenp.prettier-vscode",
   "editor.tabSize": 2,
   "editor.insertSpaces": true,
   "files.eol": "\n",
-  "files.insertFinalNewline": true,
   "files.trimTrailingWhitespace": true,
   "typescript.preferences.importModuleSpecifier": "relative",
   "typescript.preferences.includePackageJsonAutoImports": "off",
-  "eslint.workingDirectories": ["frontend", "backend"],
+  "eslint.workingDirectories": ["frontend", "backend/*", "packages/*"],
   "typescript.enablePromptUseWorkspaceTsdk": true,
   "search.exclude": {
     "**/node_modules": true,

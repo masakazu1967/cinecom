@@ -1,35 +1,18 @@
+import { TypeOrmSceneModule } from '@cinecom/typeorm-scene';
 import { Module } from '@nestjs/common';
-import { ConfigModule, ConfigService } from '@nestjs/config';
-import { TypeOrmModule } from '@nestjs/typeorm';
-import { AppController } from './AppController';
-import { AppService } from './AppService';
-import * as entities from './entities';
-import { ScenesModule } from './scenes/ScenesModule';
+import { ConfigModule } from '@nestjs/config';
+import AppConfig from './config/AppConfig';
+import { SceneServiceModule } from './scene/SceneServiceModule';
 
 @Module({
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
       envFilePath: '.env',
+      load: [AppConfig],
     }),
-    TypeOrmModule.forRootAsync({
-      inject: [ConfigService],
-      useFactory: (configService: ConfigService) => ({
-        type: 'postgres',
-        host: configService.get('DATABASE_HOST', 'localhost'),
-        port: configService.get<number>('DATABASE_PORT', 5432),
-        username: configService.get('DATABASE_USERNAME', 'cinecom'),
-        password: configService.get('DATABASE_PASSWORD', 'cinecom_dev_password'),
-        database: configService.get('DATABASE_NAME', 'cinecom_dev'),
-        entities: Object.values(entities),
-        synchronize: false, // 本番では必ずfalse
-        logging: configService.get('NODE_ENV') === 'development',
-        ssl: configService.get('NODE_ENV') === 'production' ? { rejectUnauthorized: false } : false,
-      }),
-    }),
-    ScenesModule,
+    TypeOrmSceneModule,
+    SceneServiceModule,
   ],
-  controllers: [AppController],
-  providers: [AppService],
 })
 export class AppModule {}

@@ -7,7 +7,6 @@ import {
   PrimaryGeneratedColumn,
   Unique,
 } from 'typeorm';
-import { ActorRecord } from './ActorRecord';
 import { SceneRecord } from './SceneRecord';
 
 @Entity('scene_actors')
@@ -16,29 +15,28 @@ export class SceneActorRecord {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
-  @Column('uuid')
-  scene_id: string;
+  @Column('uuid', { name: 'scene_id' })
+  sceneId: string;
 
-  @Column('uuid')
-  actor_id: string;
+  @Column('uuid', { name: 'actor_id' })
+  actorId: string;
 
-  @ManyToOne(() => SceneRecord, (scene) => scene.scene_actors)
+  @ManyToOne(() => SceneRecord, (scene) => scene.sceneActors)
   @JoinColumn({ name: 'scene_id' })
   scene: SceneRecord;
 
-  @ManyToOne(() => ActorRecord, (actor) => actor.scene_actors)
-  @JoinColumn({ name: 'actor_id' })
-  actor: ActorRecord;
+  // ActorRecordリレーションは削除（マイクロサービス分離）
+  // actor情報はAPI経由で取得
 
-  @Column('boolean', { default: false })
-  is_main_actor: boolean;
+  @Column('boolean', { default: false, name: 'is_main_actor' })
+  isMainActor: boolean;
 
-  @Column('int', { nullable: true })
-  screen_time_seconds: number;
+  @Column('int', { nullable: true, name: 'screen_time_seconds' })
+  screenTimeSeconds: number;
 
-  @Column('int', { default: 0 })
-  dialogue_count: number;
+  @Column('int', { default: 0, name: 'dialogue_count' })
+  dialogueCount: number;
 
-  @CreateDateColumn()
-  created_at: Date;
+  @CreateDateColumn({ name: 'created_at' })
+  createdAt: Date;
 }

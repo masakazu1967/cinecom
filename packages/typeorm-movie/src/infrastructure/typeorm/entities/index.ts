@@ -1,0 +1,1 @@
+export { MovieRecord } from './MovieRecord';

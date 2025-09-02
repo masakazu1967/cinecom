@@ -6,7 +6,6 @@ import {
   ManyToOne,
   PrimaryGeneratedColumn,
 } from 'typeorm';
-import { ActorRecord } from './ActorRecord';
 import { SceneRecord } from './SceneRecord';
 
 @Entity('scene_dialogues')
@@ -14,35 +13,34 @@ export class SceneDialogueRecord {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
-  @Column('uuid')
-  scene_id: string;
+  @Column('uuid', { name: 'scene_id' })
+  sceneId: string;
 
-  @Column('uuid', { nullable: true })
-  actor_id: string;
+  @Column('uuid', { nullable: true, name: 'actor_id' })
+  actorId: string;
 
   @ManyToOne(() => SceneRecord, (scene) => scene.dialogues)
   @JoinColumn({ name: 'scene_id' })
   scene: SceneRecord;
 
-  @ManyToOne(() => ActorRecord, (actor) => actor.dialogues, { nullable: true })
-  @JoinColumn({ name: 'actor_id' })
-  actor: ActorRecord;
+  // ActorRecordリレーションは削除（マイクロサービス分離）
+  // actor情報はAPI経由で取得
 
-  @Column('varchar', { length: 100, nullable: true })
-  character_name: string;
+  @Column('varchar', { length: 100, nullable: true, name: 'character_name' })
+  characterName: string;
 
-  @Column('text')
-  dialogue_text: string;
+  @Column('text', { name: 'dialogue_text' })
+  dialogueText: string;
 
-  @Column('int')
-  dialogue_order: number;
+  @Column('int', { name: 'dialogue_order' })
+  dialogueOrder: number;
 
-  @Column('boolean', { default: false })
-  is_memorable_quote: boolean;
+  @Column('boolean', { default: false, name: 'is_memorable_quote' })
+  isMemorableQuote: boolean;
 
-  @Column('int', { nullable: true })
-  timestamp_seconds: number;
+  @Column('int', { nullable: true, name: 'timestamp_seconds' })
+  timestampSeconds: number;
 
-  @CreateDateColumn()
-  created_at: Date;
+  @CreateDateColumn({ name: 'created_at' })
+  createdAt: Date;
 }

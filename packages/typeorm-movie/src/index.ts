@@ -1,0 +1,1 @@
+export { TypeOrmMovieModule } from './TypeormMovieModule';
