@@ -1,6 +1,8 @@
+import { Injectable } from '@nestjs/common';
 import { Movie } from '../model/Movie';
-import { MovieRepository } from './MovieRepository';
+import type { MovieRepository } from './MovieRepository';
 
+@Injectable()
 export class MovieExistanceService {
   constructor(private readonly movieRepository: MovieRepository) {}
 

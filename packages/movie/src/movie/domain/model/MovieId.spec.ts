@@ -22,11 +22,11 @@ describe('MovieId', () => {
 
     it(`
       Arrange:
-        - A valid MovieId
+        - An invalid UUID string
       Act:
-        - Call MovieId.isValid() with the MovieId
+        - Call MovieId.create() with the invalid UUID
       Assert:
-        - Expect the result to be true
+        - Expect an InvalidFormatError to be thrown with the correct message and field name
     `, () => {
       // Arrange
       const value = '';
@@ -37,7 +37,7 @@ describe('MovieId', () => {
         // Assert
         expect(error).toBeInstanceOf(InvalidFormatError);
         if (error instanceof InvalidFormatError) {
-          expect(error.message).toBe('Invalid UUID format');
+          expect(error.message).toBe(`Invalid ${MovieId.VALUE_OBJECT_NAME}`);
           expect(error.fieldName).toBe(MovieId.VALUE_OBJECT_NAME);
         }
       }

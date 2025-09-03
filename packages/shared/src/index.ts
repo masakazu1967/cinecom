@@ -9,3 +9,5 @@ export { InvalidFormatError } from './domain/error/InvalidFormatError';
 export { ZodErrorConverter } from './domain/error/ZodErrorConverter';
 export { DuplicateError } from './domain/error/DuplicateError';
 export { NotFoundError } from './domain/error/NotFoundError';
+
+export { VersionFixture } from './domain/Version.fixture';
