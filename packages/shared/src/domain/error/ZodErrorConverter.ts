@@ -2,6 +2,7 @@ import { ZodError } from 'zod';
 import { DomainError } from './DomainError';
 import { OutOfRangeError } from './OutOfRangeError';
 import { InvalidFormatError } from './InvalidFormatError';
+import { TypeMismatchError } from './TypeMismatchError';
 
 export class ZodErrorConverter {
   static convert(error: ZodError, fieldName: string): DomainError {
@@ -23,10 +24,11 @@ export class ZodErrorConverter {
       );
     }
     if (firstIssue.code === 'invalid_type') {
-      return new DomainError(
+      return new TypeMismatchError(
         `Invalid type. Expected ${firstIssue.expected}`,
         fieldName,
         firstIssue.input,
+        firstIssue.expected,
       );
     }
     if (firstIssue.code === 'invalid_format') {

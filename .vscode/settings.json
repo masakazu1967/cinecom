@@ -4,7 +4,8 @@
   "files.eol": "\n",
   "files.trimTrailingWhitespace": true,
   "typescript.preferences.importModuleSpecifier": "relative",
-  "typescript.preferences.includePackageJsonAutoImports": "off",
+  "typescript.preferences.includePackageJsonAutoImports": "auto",
+  "typescript.updateImportsOnFileMove.enabled": "always",
   "eslint.workingDirectories": ["frontend", "backend/*", "packages/*"],
   "typescript.enablePromptUseWorkspaceTsdk": true,
   "search.exclude": {

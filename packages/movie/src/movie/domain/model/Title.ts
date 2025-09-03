@@ -2,6 +2,7 @@ import z from 'zod';
 import { PrimitiveValueObject, ZodErrorConverter } from '@cinecom/shared';
 
 export class Title extends PrimitiveValueObject<string> {
+  static readonly VALUE_OBJECT_NAME = 'MOVIE.TITLE';
   static readonly MIN_LENGTH = 1;
   static readonly MAX_LENGTH = 255;
   private constructor(value: string) {
@@ -16,7 +17,7 @@ export class Title extends PrimitiveValueObject<string> {
       .max(Title.MAX_LENGTH)
       .safeParse(value);
     if (!result.success) {
-      throw ZodErrorConverter.convert(result.error, 'title');
+      throw ZodErrorConverter.convert(result.error, Title.VALUE_OBJECT_NAME);
     }
   }
 

@@ -1,3 +1,5 @@
+import { MovieId, MovieNotification, Title } from '@cinecom/movie';
+import { Version } from '@cinecom/shared';
 import {
   Column,
   CreateDateColumn,
@@ -8,7 +10,7 @@ import {
 } from 'typeorm';
 
 @Entity('movies')
-export class MovieRecord {
+export class MovieRecord implements MovieNotification {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
@@ -47,4 +49,17 @@ export class MovieRecord {
 
   // マイクロサービス分離により他サービスとのリレーションは削除
   // Scene, Actor関連は各々のサービスでAPI経由で取得
+  setId(id: MovieId): void {
+    this.id = id.value;
+  }
+
+  setTitle(title: Title): void {
+    this.title = title.value;
+  }
+
+  setVersion(version?: Version): void {
+    if (version) {
+      this.version = version.value;
+    }
+  }
 }

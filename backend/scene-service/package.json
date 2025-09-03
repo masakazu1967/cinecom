@@ -26,6 +26,7 @@
     "test:e2e": "jest --config ./test/jest-e2e.json"
   },
   "dependencies": {
+    "@cinecom/scene": "workspace:*",
     "@cinecom/shared": "workspace:*",
     "@cinecom/typeorm-scene": "workspace:*",
     "@nestjs/common": "^11.0.1",
