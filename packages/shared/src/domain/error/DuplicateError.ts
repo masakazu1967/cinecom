@@ -1,7 +1,7 @@
-import { DomainError } from './DomainError';
+import { BusinessRuleError, BusinessRuleErrorCode } from './BusinessRuleError';
 
-export class DuplicateError extends DomainError {
+export class DuplicateError extends BusinessRuleError {
   constructor(message: string, fieldName: string) {
-    super(message, fieldName);
+    super(message, fieldName, BusinessRuleErrorCode.DUPLICATE);
   }
 }

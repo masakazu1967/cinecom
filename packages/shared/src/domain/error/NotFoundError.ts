@@ -1,7 +1,7 @@
-import { DomainError } from './DomainError';
+import { BusinessRuleError, BusinessRuleErrorCode } from './BusinessRuleError';
 
-export class NotFoundError extends DomainError {
+export class NotFoundError extends BusinessRuleError {
   constructor(message: string, fieldName: string) {
-    super(message, fieldName);
+    super(message, fieldName, BusinessRuleErrorCode.NOT_FOUND);
   }
 }

@@ -1,6 +1,6 @@
-import { DomainError } from './DomainError';
+import { ValidationError, ValidationErrorCode } from './ValidationError';
 
-export class OutOfRangeError extends DomainError {
+export class OutOfRangeError extends ValidationError {
   public readonly min?: number | bigint;
   public readonly max?: number | bigint;
   constructor(
@@ -9,7 +9,7 @@ export class OutOfRangeError extends DomainError {
     value: unknown,
     { min, max }: { min?: number | bigint; max?: number | bigint },
   ) {
-    super(message, fieldName, value);
+    super(message, fieldName, ValidationErrorCode.OUT_OF_RANGE, value);
     this.min = min;
     this.max = max;
   }
