@@ -1,9 +1,9 @@
-import { Version } from './Version';
+import { VersionBuilder } from './VersionBuilder';
 
-export class VersionFixture {
-  private _value?: number;
-
-  private constructor() {}
+export class VersionFixture extends VersionBuilder {
+  protected constructor() {
+    super();
+  }
 
   static of(): VersionFixture {
     return new VersionFixture();
@@ -11,17 +11,5 @@ export class VersionFixture {
 
   get value(): number | undefined {
     return this._value;
-  }
-
-  setValue(value: number): this {
-    this._value = value;
-    return this;
-  }
-
-  build(): Version | undefined {
-    if (this._value === undefined) {
-      return;
-    }
-    return Version.create(this._value);
   }
 }

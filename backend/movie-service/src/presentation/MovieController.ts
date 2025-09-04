@@ -10,6 +10,14 @@ class CreateMovieDto {
 export class MovieController {
   constructor(private readonly createMovieUsecase: CreateMovieUsecase) {}
 
+  /**
+   * - DuplicateError
+   * - NotFoundError
+   * - DomainError
+   * - InfrastructureError
+   * @param dto 映像作品作成DTO
+   * @returns 登録された映像作品ビューモデル
+   */
   @Post()
   async create(@Body() dto: CreateMovieDto): Promise<MovieViewModel> {
     const request = CreateMovieRequest.create(dto);

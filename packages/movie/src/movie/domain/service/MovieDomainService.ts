@@ -2,9 +2,10 @@ import { DuplicateError, NotFoundError } from '@cinecom/shared';
 import { Movie } from '../model/Movie';
 import { Title } from '../model/Title';
 import { MovieExistanceService } from './MovieExistanceService';
-import { MovieIdGenerator } from './MovieIdGenerator';
-import { MovieRepository } from './MovieRepository';
+import { type MovieIdGenerator } from './MovieIdGenerator';
+import { type MovieRepository } from './MovieRepository';
 import { MovieId } from '../model/MovieId';
+import { Inject, Injectable } from '@nestjs/common';
 
 type CreateMovieRequest = {
   title: Title;
@@ -19,9 +20,12 @@ type RemoveMovieRequest = {
   id: MovieId;
 };
 
+@Injectable()
 export class MovieDomainService {
   constructor(
+    @Inject('MovieRepository')
     private readonly movieRepository: MovieRepository,
+    @Inject('MovieIdGenerator')
     private readonly movieIdGenerator: MovieIdGenerator,
     private readonly movieExistanceService: MovieExistanceService,
   ) {}

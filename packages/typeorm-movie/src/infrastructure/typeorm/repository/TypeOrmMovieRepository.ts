@@ -10,20 +10,29 @@ export class TypeOrmMovieRepository implements MovieRepository {
     private readonly movieRepository: Repository<MovieRecord>,
   ) {}
 
-  findById(id: MovieId): Promise<Movie | null> {
-    throw new Error('Method not implemented.');
+  async findById(id: MovieId): Promise<Movie | null> {
+    const record = await this.movieRepository.findOneBy({ id: id.value });
+    if (!record) {
+      return null;
+    }
+    return this.fromRecord(record);
   }
 
-  findByTitle(title: Title): Promise<Movie | null> {
-    throw new Error('Method not implemented.');
+  async findByTitle(title: Title): Promise<Movie | null> {
+    const record = await this.movieRepository.findOneBy({ title: title.value });
+    if (!record) {
+      return null;
+    }
+    return this.fromRecord(record);
   }
 
-  save(movie: Movie): Promise<void> {
-    throw new Error('Method not implemented.');
+  async save(movie: Movie): Promise<void> {
+    const record = this.toRecord(movie);
+    await this.movieRepository.save(record);
   }
 
-  remove(id: MovieId): Promise<void> {
-    throw new Error('Method not implemented.');
+  async remove(id: MovieId): Promise<void> {
+    await this.movieRepository.delete({ id: id.value });
   }
 
   private fromRecord(record: MovieRecord): Movie {

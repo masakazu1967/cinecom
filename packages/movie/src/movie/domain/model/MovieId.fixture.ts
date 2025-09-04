@@ -1,7 +1,6 @@
-import { MovieId } from './MovieId';
+import { MovieIdBuilder } from './MovieIdBuilder';
 
-export class MovieIdFixture {
-  private _value: string;
+export class MovieIdFixture extends MovieIdBuilder {
   private readonly values = [
     '550e8400-e29b-41d4-a716-446655440000',
     '550e8400-e29b-41d4-a716-446655440001',
@@ -15,7 +14,8 @@ export class MovieIdFixture {
     '550e8400-e29b-41d4-a716-446655440009',
   ];
 
-  private constructor() {
+  protected constructor() {
+    super();
     this._value = this.values[0];
   }
 
@@ -27,17 +27,8 @@ export class MovieIdFixture {
     return this._value;
   }
 
-  setValue(value: string): this {
-    this._value = value;
-    return this;
-  }
-
   setIndex(index: number): this {
     this._value = this.values[index];
     return this;
-  }
-
-  build(): MovieId {
-    return MovieId.create(this._value);
   }
 }

@@ -1,60 +1,50 @@
-import { VersionFixture } from '@cinecom/shared';
 import { MovieIdFixture } from './MovieId.fixture';
 import { TitleFixture } from './Title.fixture';
-import { Movie } from './Movie';
+import { MovieBuilder } from './MovieBuilder';
 
-export class MovieFixture {
-  private readonly movieIdFixture = MovieIdFixture.of();
-  private readonly titleFixture = TitleFixture.of();
-  private versionFixture?: VersionFixture;
-
-  private constructor() {}
-
-  static of(): MovieFixture {
-    return new MovieFixture();
+export class MovieFixture extends MovieBuilder {
+  protected constructor() {
+    super();
   }
 
-  setMovieIdValue(value: string): this {
-    this.movieIdFixture.setValue(value);
+  static of(): MovieFixture {
+    const fixture = new MovieFixture();
+    fixture.reset();
+    return fixture;
+  }
+
+  reset(): this {
+    this.movieIdBuilder = MovieIdFixture.of();
+    this.titleBuilder = TitleFixture.of();
+    this.versionBuilder = undefined;
     return this;
+  }
+
+  isMovieIdFixture(fixture: unknown): fixture is MovieIdFixture {
+    return fixture instanceof MovieIdFixture;
+  }
+
+  isTitleFixture(fixture: unknown): fixture is TitleFixture {
+    return fixture instanceof TitleFixture;
   }
 
   setMovieIdIndex(index: number): this {
-    this.movieIdFixture.setIndex(index);
-    return this;
-  }
-
-  setTitleValue(value: string): this {
-    this.titleFixture.setValue(value);
+    if (this.isMovieIdFixture(this.movieIdBuilder)) {
+      this.movieIdBuilder.setIndex(index);
+    }
     return this;
   }
 
   setTitleIndex(index: number): this {
-    this.titleFixture.setIndex(index);
-    return this;
-  }
-
-  setVersionValue(value: number): this {
-    if (!this.versionFixture) {
-      this.versionFixture = VersionFixture.of();
+    if (this.isTitleFixture(this.titleBuilder)) {
+      this.titleBuilder.setIndex(index);
     }
-    this.versionFixture.setValue(value);
     return this;
   }
 
   setIndex(index: number): this {
-    this.movieIdFixture.setIndex(index);
-    this.titleFixture.setIndex(index);
+    this.setMovieIdIndex(index);
+    this.setTitleIndex(index);
     return this;
-  }
-
-  build(): Movie {
-    const movieId = this.movieIdFixture.build();
-    const title = this.titleFixture.build();
-    const version = this.versionFixture?.build();
-    if (!version) {
-      return Movie.create(movieId, { title });
-    }
-    return Movie.restore(movieId, { title }, version);
   }
 }

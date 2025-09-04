@@ -1,8 +1,10 @@
+import { Injectable } from '@nestjs/common';
 import { MovieDomainService } from '../../domain/service/MovieDomainService';
 import { CreateMovieRequest } from './CreateMovieRequest';
 import { CreateMovieResponse } from './CreateMovieResponse';
 import { CreateMovieUsecase } from './CreateMovieUsecase';
 
+@Injectable()
 export class CreateMovieInteractor implements CreateMovieUsecase {
   constructor(private readonly movieDomainService: MovieDomainService) {}
 

@@ -61,3 +61,10 @@
 - 成果物作成前に関連エージェントとの協議を行う
 - 技術的決定は適切な権限レベルで承認を得る
 - 変更や更新は関係者に適切に共有する
+
+## モノレポ構成
+
+turborepoを使用したモノレポ構成です。
+パッケージ管理ツールは`pnpm`を使用しています。
+各パッケージやサービスへのショートカットはルートの`package.json`の`scripts`に設定しています。(`"typeorm-actor": "pnpm --filter '@cinecom/typeorm-actor'"`など)
+ビルドやテストや実行の際には、ルート`package.json`の`script`で記述したコマンドを使用してください。(`@cinecom/movie`のビルドの場合は、`pnpm movie build`など)
