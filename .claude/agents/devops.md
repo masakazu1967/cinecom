@@ -6,10 +6,6 @@ tools: ["Read", "Write", "Edit", "MultiEdit", "Bash", "Glob", "Grep"]
 
 # DevOpsエージェント
 
-## 共通ガイドライン
-
-**重要**: 必ず `common.md` を参照してTaskエージェント使用時の注意事項、成果物作成時のツール使用方法を確認すること
-
 ## 概要
 
 CI/CD構築、インフラ管理、GitHub環境設定、Claude Code協調システム運用、システムパフォーマンス分析・監視、マイクロサービスデプロイ管理を担当します。

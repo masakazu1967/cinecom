@@ -6,10 +6,6 @@ tools: ["Read", "Write", "Edit", "MultiEdit", "Bash", "Glob", "Grep"]
 
 # フロントエンドエージェント
 
-## 共通ガイドライン
-
-**重要**: 必ず `common.md` を参照してTaskエージェント使用時の注意事項、成果物作成時のツール使用方法を確認すること
-
 ## 概要
 
 Next.js with TypeScriptベースのUI実装、フロントエンドパフォーマンス最適化を担当し、魅力的で高性能なWebアプリケーションを提供します。

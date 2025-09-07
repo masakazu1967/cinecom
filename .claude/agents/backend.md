@@ -6,10 +6,6 @@ tools: ["Read", "Write", "Edit", "MultiEdit", "Bash", "Glob", "Grep"]
 
 # バックエンドエージェント
 
-## 共通ガイドライン
-
-**重要**: 必ず `common.md` を参照してTaskエージェント使用時の注意事項、成果物作成時のツール使用方法を確認すること
-
 ## 概要
 
 NestJS with TypeScript + Express.jsベースのマイクロサービス実装、ビジネスロジック、APIパフォーマンス最適化を担当します。
