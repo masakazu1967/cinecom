@@ -17,12 +17,12 @@
    対象: ユーザー行動・ビジネス価値・KPI
    メトリクス: ユーザー数, 検索回数, 登録数
    優先度: 最高 - ビジネス価値直結
-   
+
 2. アプリケーション監視（重要）:
    対象: マイクロサービス・API・データベース
    メトリクス: レスポンス時間, エラー率, スループット
    優先度: 高 - ユーザー体験直結
-   
+
 3. セキュリティ監視（重要）:
    対象: 不正アクセス・脆弱性・コンプライアンス
    メトリクス: 失敗ログイン, 異常パターン, セキュリティイベント
@@ -34,7 +34,8 @@
    優先度: 中 - 上位レイヤーの原因分析・予防保全
 ```
 
-**階層型監視アプローチ**: 
+**階層型監視アプローチ**:
+
 - ビジネス異常 → アプリケーション分析 → インフラ調査の順序
 - 技術指標はビジネス影響の原因特定・予防のサポート役
 
@@ -69,7 +70,7 @@ CPU メトリクス:
     - 目標: 平均60%以下、ピーク80%以下
     - 監視間隔: 1分
     - アラート: 85%超過で警告、95%超過で重大
-  
+
   - cpu_load_average: ロードアベレージ
     - 目標: 1分平均がCPUコア数以下
     - 監視間隔: 1分
@@ -78,7 +79,7 @@ Memory メトリクス:
   - memory_usage_percent: メモリ使用率（%）
     - 目標: 平均70%以下、ピーク85%以下
     - アラート: 90%超過で警告、95%超過で重大
-  
+
   - memory_available_bytes: 利用可能メモリ（bytes）
   - swap_usage_percent: スワップ使用率（%）
     - 目標: 10%以下
@@ -87,7 +88,7 @@ Disk メトリクス:
   - disk_usage_percent: ディスク使用率（%）
     - 目標: 80%以下
     - アラート: 85%超過で警告、90%超過で重大
-  
+
   - disk_io_read_bytes_per_sec: 読み取りI/O（bytes/sec）
   - disk_io_write_bytes_per_sec: 書き込みI/O（bytes/sec）
 
@@ -307,17 +308,17 @@ scrape_configs:
       - targets: ['user-service:3001']
     metrics_path: /metrics
     scrape_interval: 10s
-  
+
   - job_name: 'movie-service'
     static_configs:
       - targets: ['movie-service:3002']
     metrics_path: /metrics
     scrape_interval: 10s
-  
+
   - job_name: 'postgresql'
     static_configs:
       - targets: ['postgres-exporter:9187']
-  
+
   - job_name: 'redis'
     static_configs:
       - targets: ['redis-exporter:9121']
@@ -406,7 +407,7 @@ export class MetricsMiddleware implements NestMiddleware {
 
   use(req: Request, res: Response, next: NextFunction) {
     const startTime = Date.now();
-    
+
     res.on('finish', () => {
       const duration = (Date.now() - startTime) / 1000;
       this.metricsService.recordHttpRequest(
@@ -417,7 +418,7 @@ export class MetricsMiddleware implements NestMiddleware {
         process.env.SERVICE_NAME || 'unknown'
       );
     });
-    
+
     next();
   }
 }
@@ -431,7 +432,7 @@ export class MetricsMiddleware implements NestMiddleware {
 システム概要ダッシュボード:
   目的: システム全体の健全性一目把握
   期間: 直近24時間（リアルタイム更新）
-  
+
   パネル構成:
     - サービス稼働状況（緑/赤ステータス）
     - 全体エラー率・レスポンス時間
@@ -442,7 +443,7 @@ export class MetricsMiddleware implements NestMiddleware {
 マイクロサービス詳細ダッシュボード:
   目的: 各サービスの詳細監視
   構成: サービス別個別ダッシュボード
-  
+
   共通パネル:
     - API エンドポイント別レスポンス時間
     - エラー率・スループット
@@ -452,7 +453,7 @@ export class MetricsMiddleware implements NestMiddleware {
 
 インフラストラクチャダッシュボード:
   目的: インフラリソース監視
-  
+
   パネル構成:
     - CPU・メモリ・ディスク使用率
     - ネットワークI/O
@@ -462,7 +463,7 @@ export class MetricsMiddleware implements NestMiddleware {
 
 ビジネスダッシュボード:
   目的: ビジネス価値・KPI監視
-  
+
   パネル構成:
     - ユーザー成長・継続率
     - 検索・コンテンツ利用状況
@@ -481,7 +482,7 @@ export class MetricsMiddleware implements NestMiddleware {
 Critical (重大):
   条件: サービス停止・重大パフォーマンス劣化
   通知: 即座（Slack + PagerDuty + メール）
-  
+
   ルール例:
     - API可用性 < 95% (5分間)
     - エラー率 > 5% (5分間)
@@ -491,7 +492,7 @@ Critical (重大):
 Warning (警告):
   条件: 性能劣化・リソース不足の兆候
   通知: 15分以内（Slack + メール）
-  
+
   ルール例:
     - CPU使用率 > 80% (15分間)
     - メモリ使用率 > 85% (10分間)
@@ -501,7 +502,7 @@ Warning (警告):
 Info (情報):
   条件: 監視値の変化・注意が必要な状況
   通知: 1時間以内（Slack のみ）
-  
+
   ルール例:
     - デプロイ完了通知
     - ユーザー登録数急増
@@ -686,12 +687,12 @@ const logger = createLogger({
   },
   transports: [
     new transports.Console(),
-    new transports.File({ 
-      filename: 'logs/error.log', 
-      level: 'error' 
+    new transports.File({
+      filename: 'logs/error.log',
+      level: 'error'
     }),
-    new transports.File({ 
-      filename: 'logs/combined.log' 
+    new transports.File({
+      filename: 'logs/combined.log'
     }),
   ],
 });
@@ -769,19 +770,19 @@ const tracer = trace.getTracer('movie-service');
 
 export async function searchMovies(query: string) {
   const span = tracer.startSpan('movie.search');
-  
+
   try {
     span.setAttributes({
       'movie.search.query': query,
       'movie.search.type': 'fulltext',
     });
-    
+
     const results = await performSearch(query);
-    
+
     span.setAttributes({
       'movie.search.results.count': results.length,
     });
-    
+
     return results;
   } catch (error) {
     span.recordException(error);

@@ -7,16 +7,25 @@
 本ドキュメントは、Cinecomプロジェクトにおけるエージェント間の意思決定プロセスを定義します。Claude Code環境でのレベル別意思決定権限と合意形成プロセスを詳述します。
 
 **状況別意思決定方針**:
+
 - **通常時**: 合意形成による意思決定（このドキュメント）
 - **緊急時**: PMによる迅速な意思決定（`emergency_procedures.md`参照）
 
 **緊急時意思決定への切り替えトリガー**:
+
 - システム障害・重大機能不全
 - Critical/High重要度の問題発生
 - 即座対応が必要な技術的ブロッカー
 - データ損失・セキュリティ侵害の可能性
 
 ### 決定権限レベル
+
+|Level|提案内容|
+|--:|---|
+|0|プロジェクト方向性・ビジネス要件|
+|1|各エージェントの専門領域内|
+|2|複数エージェントに影響|
+|3|プロジェクト全体に影響|
 
 #### **Level 0 (人間の最終判断)**: プロジェクト方向性・ビジネス要件
 
@@ -94,7 +103,7 @@
 ```yaml
 目的: 実装変更・コード修正
 対象: Level 1-2の技術的変更
-プロセス: CODEOWNERS → 自動レビュアーアサイン → レビュー → マージ
+プロセス: レビュアーアサイン → レビュー → マージ
 ```
 
 **GitHubイシュー**: 仕様変更・新機能提案の場合
@@ -110,7 +119,7 @@
 ```yaml
 目的: 設計書・仕様書・プロセス変更
 対象: Level 2-3のドキュメント変更
-プロセス: ドキュメント更新 → CODEOWNERS → レビュー → 承認
+プロセス: ドキュメント更新 → レビュアーアサイン → レビュー → 承認
 ```
 
 #### **2. 自動通知システム**
@@ -120,7 +129,7 @@
 ```yaml
 PR作成時:
   アクション: 影響を受けるファイル・モジュールの担当エージェントに通知
-  方法: CODEOWNERS機能で自動レビュアーアサイン
+  方法: エージェントにレビュアーアサイン
   対象: 該当ファイル・ディレクトリの責任エージェント
 
 Issue作成時:
@@ -129,7 +138,7 @@ Issue作成時:
   対象: ラベルに対応するエージェント
 
 ドキュメント更新:
-  アクション: CODEOWNERS機能で担当者自動アサイン
+  アクション: 影響を受けるファイルの担当者自動アサイン
   方法: GitHub通知 + Discord連携
   対象: ドキュメント領域の責任エージェント
 ```
@@ -163,42 +172,15 @@ GitHub Issues/PR:
   対象: 設計変更・実装レビュー・課題解決
 ```
 
-#### **3. ドキュメント更新確認システム**
-
-**CODEOWNERS設定例**:
-
-```bash
-# API仕様変更 (Level 2 - 人間レビュー必要)
-/api/                    @backend-agent @frontend-agent @human-reviewer
-/docs/api/               @backend-agent @frontend-agent @human-reviewer
-
-# マイクロサービス関連
-/services/user-service/  @backend-agent @database-agent
-/services/movie-service/ @backend-agent @database-agent
-/services/actor-service/ @backend-agent @database-agent
-/services/scene-service/ @backend-agent @database-agent
-/services/review-service/ @backend-agent @database-agent
-
-# データベース関連 (Level 2 - 人間レビュー必要)
-/migrations/             @database-agent @backend-agent @human-reviewer
-/models/                 @database-agent @backend-agent @human-reviewer
-
-# フロントエンド
-/frontend/               @frontend-agent @ux-agent
-/docs/design/            @ux-agent @frontend-agent
-
-# 設計ドキュメント (Level 2-3 - 人間レビュー必要)
-/docs/architecture/      @architect-agent @all-agents @human-reviewer
-/docs/project/charter.md @pm-agent @human-reviewer
-```
-
-#### **4. 影響度判定・レビュー依頼**
+#### **3. 影響度判定・レビュー依頼**
 
 **プルリクエスト・イシューテンプレート**:
 
 ```markdown
 # プルリクエスト・イシューテンプレート
+
 ## 変更概要
+
 - 変更内容の説明
 
 ## 影響を受けるサービス・エージェント（自動タグ付け）
@@ -211,15 +193,17 @@ GitHub Issues/PR:
 - [ ] review-service (レビューシステムへの影響)
 
 ## 影響度レベル
+
 - [ ] Level 1 (自律判断)
 - [ ] Level 2 (関連エージェント協議)
 - [ ] Level 3 (全体合意 + 人間承認)
 
 ## レビュー期限
+
 - 期限: [作成日 + 2営業日]
 ```
 
-#### **5. レビュー・合意形成**
+#### **4. レビュー・合意形成**
 
 **プロセス**:
 
@@ -237,7 +221,7 @@ GitHub Issues/PR:
    - Level 1-2: プロジェクトマネージャー承認
    - Level 3: 人間承認
 
-#### **6. 決定・マージ**
+#### **5. 決定・マージ**
 
 **承認フロー**:
 
@@ -255,7 +239,7 @@ Level 3 (全体合意 + 人間承認):
   プロセス: 全エージェント合意 → 人間承認 → PM実行指示 → マージ
 ```
 
-#### **7. 全体通知**
+#### **6. 全体通知**
 
 マージ後、全エージェントに変更内容を通知：
 
@@ -322,13 +306,13 @@ docs/project/:
       "timestamp": "2025-08-22T14:35:00Z"
     },
     {
-      "role": "backend-agent", 
+      "role": "backend-agent",
       "status": "approved",
       "timestamp": "2025-08-22T15:00:00Z"
     },
     {
       "role": "pm-agent",
-      "status": "approved", 
+      "status": "approved",
       "timestamp": "2025-08-22T15:30:00Z"
     }
   ],
