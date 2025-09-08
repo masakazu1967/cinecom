@@ -3,12 +3,26 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { ConfigService } from '@nestjs/config';
 import * as entities from '../infrastructure/typeorm/entities';
 
+interface DatabaseConfig {
+  host: string;
+  port: number;
+  username: string;
+  password: string;
+  database: string;
+  synchronize: boolean;
+  logging: boolean;
+  ssl?: boolean;
+}
+
 @Module({
   imports: [
     TypeOrmModule.forRootAsync({
       inject: [ConfigService],
       useFactory: (configService: ConfigService) => {
-        const dbConfig = configService.get('database');
+        const dbConfig = configService.get<DatabaseConfig>('database');
+        if (!dbConfig) {
+          throw new Error('Database configuration is missing');
+        }
         return {
           type: 'postgres',
           host: dbConfig.host,

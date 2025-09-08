@@ -6,6 +6,7 @@ import { type MovieIdGenerator } from './MovieIdGenerator';
 import { type MovieRepository } from './MovieRepository';
 import { MovieId } from '../model/MovieId';
 import { Inject, Injectable } from '@nestjs/common';
+import { MovieToken } from '../../MovieToken';
 
 type CreateMovieRequest = {
   title: Title;
@@ -23,9 +24,9 @@ type RemoveMovieRequest = {
 @Injectable()
 export class MovieDomainService {
   constructor(
-    @Inject('MovieRepository')
+    @Inject(MovieToken.MovieRepository)
     private readonly movieRepository: MovieRepository,
-    @Inject('MovieIdGenerator')
+    @Inject(MovieToken.MovieIdGenerator)
     private readonly movieIdGenerator: MovieIdGenerator,
     private readonly movieExistanceService: MovieExistanceService,
   ) {}

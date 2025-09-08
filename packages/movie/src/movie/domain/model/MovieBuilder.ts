@@ -9,6 +9,8 @@ export class MovieBuilder {
   protected titleBuilder = TitleBuilder.of();
   protected versionBuilder?: VersionBuilder;
 
+  protected constructor() {}
+
   static of(): MovieBuilder {
     return new MovieBuilder();
   }

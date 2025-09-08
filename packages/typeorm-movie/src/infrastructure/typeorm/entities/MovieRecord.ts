@@ -9,7 +9,7 @@ import {
   VersionColumn,
 } from 'typeorm';
 
-@Entity('movies')
+@Entity('movie')
 export class MovieRecord implements MovieNotification {
   @PrimaryGeneratedColumn('uuid')
   id: string;
