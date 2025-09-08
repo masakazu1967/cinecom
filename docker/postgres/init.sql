@@ -10,9 +10,9 @@ CREATE EXTENSION IF NOT EXISTS "btree_gist";
 SET timezone = 'Asia/Tokyo';
 
 -- ===========================================
--- MOVIES テーブル
+-- MOVIE テーブル
 -- ===========================================
-CREATE TABLE IF NOT EXISTS movies (
+CREATE TABLE IF NOT EXISTS movie (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     title VARCHAR(255) NOT NULL,
     title_original VARCHAR(255),
@@ -27,15 +27,15 @@ CREATE TABLE IF NOT EXISTS movies (
 );
 
 -- インデックス
-CREATE INDEX idx_movies_title ON movies USING GIN (title gin_trgm_ops);
-CREATE INDEX idx_movies_director ON movies (director);
-CREATE INDEX idx_movies_genre ON movies (genre);
-CREATE INDEX idx_movies_year ON movies (release_year);
+CREATE INDEX idx_movie_title ON movie USING GIN (title gin_trgm_ops);
+CREATE INDEX idx_movie_director ON movie (director);
+CREATE INDEX idx_movie_genre ON movie (genre);
+CREATE INDEX idx_movie_year ON movie (release_year);
 
 -- ===========================================
 -- ACTORS テーブル
 -- ===========================================
-CREATE TABLE IF NOT EXISTS actors (
+CREATE TABLE IF NOT EXISTS actor (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     name VARCHAR(100) NOT NULL,
     name_original VARCHAR(100),
@@ -47,15 +47,15 @@ CREATE TABLE IF NOT EXISTS actors (
 );
 
 -- インデックス
-CREATE INDEX idx_actors_name ON actors USING GIN (name gin_trgm_ops);
+CREATE INDEX idx_actor_name ON actor USING GIN (name gin_trgm_ops);
 
 -- ===========================================
--- MOVIE_ACTORS テーブル（映画-俳優 多対多）
+-- MOVIE_ACTOR テーブル（映画-俳優 多対多）
 -- ===========================================
-CREATE TABLE IF NOT EXISTS movie_actors (
+CREATE TABLE IF NOT EXISTS movie_actor (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    movie_id UUID NOT NULL REFERENCES movies(id) ON DELETE CASCADE,
-    actor_id UUID NOT NULL REFERENCES actors(id) ON DELETE CASCADE,
+    movie_id UUID NOT NULL REFERENCES movie(id) ON DELETE CASCADE,
+    actor_id UUID NOT NULL REFERENCES actor(id) ON DELETE CASCADE,
     character_name VARCHAR(100),
     role_type VARCHAR(20) DEFAULT 'supporting', -- main, supporting, cameo
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
@@ -63,75 +63,75 @@ CREATE TABLE IF NOT EXISTS movie_actors (
 );
 
 -- インデックス
-CREATE INDEX idx_movie_actors_movie ON movie_actors (movie_id);
-CREATE INDEX idx_movie_actors_actor ON movie_actors (actor_id);
+CREATE INDEX idx_movie_actor_movie ON movie_actor (movie_id);
+CREATE INDEX idx_movie_actor_actor ON movie_actor (actor_id);
 
 -- ===========================================
--- SCENES テーブル（L-dialogue 3階層分類対応）
+-- SCENE テーブル（L-dialogue 3階層分類対応）
 -- ===========================================
-CREATE TABLE IF NOT EXISTS scenes (
+CREATE TABLE IF NOT EXISTS scene (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    movie_id UUID NOT NULL REFERENCES movies(id) ON DELETE CASCADE,
-    
+    movie_id UUID NOT NULL REFERENCES movie(id) ON DELETE CASCADE,
+
     -- 時間情報
     start_time_seconds INTEGER NOT NULL,
     end_time_seconds INTEGER NOT NULL,
-    
+
     -- L-dialogue 3階層分類システム
     level1_classification VARCHAR(10) NOT NULL, -- A, R, C, S, D, L, O
     level2_classification VARCHAR(20) NOT NULL, -- A1, R3, L2 等
     level3_classification TEXT[], -- 複数選択対応: ["A1-1", "A1-3"]
-    
+
     -- シーン基本情報
     scene_title VARCHAR(200),
     scene_description TEXT,
     location VARCHAR(100),
-    
+
     -- 感情・雰囲気タグ
     emotion_tags TEXT[] DEFAULT '{}',
     atmosphere_tags TEXT[] DEFAULT '{}',
-    
+
     -- 台詞情報
     has_dialogue BOOLEAN DEFAULT false,
     memorable_quotes TEXT[],
-    
+
     -- メタデータ
     is_parallel_scene BOOLEAN DEFAULT false,
     parallel_scene_group_id UUID,
     data_entry_notes TEXT,
-    
+
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
-    
+
     -- 制約
     CONSTRAINT chk_time_range CHECK (end_time_seconds > start_time_seconds),
     CONSTRAINT chk_level1 CHECK (level1_classification IN ('A', 'R', 'C', 'S', 'D', 'L', 'O'))
 );
 
 -- 時間オーバーラップ検索用GiSTインデックス（100倍高速化）
-CREATE INDEX idx_scenes_time_overlap ON scenes 
+CREATE INDEX idx_scene_time_overlap ON scene
 USING GIST (movie_id, int4range(start_time_seconds, end_time_seconds));
 
 -- 分類検索用インデックス
-CREATE INDEX idx_scenes_level1 ON scenes (level1_classification);
-CREATE INDEX idx_scenes_level2 ON scenes (level2_classification);
-CREATE INDEX idx_scenes_level3 ON scenes USING GIN (level3_classification);
+CREATE INDEX idx_scene_level1 ON scene (level1_classification);
+CREATE INDEX idx_scene_level2 ON scene (level2_classification);
+CREATE INDEX idx_scene_level3 ON scene USING GIN (level3_classification);
 
 -- 複合インデックス
-CREATE INDEX idx_scenes_movie_time ON scenes (movie_id, start_time_seconds);
-CREATE INDEX idx_scenes_classification ON scenes (level1_classification, level2_classification);
+CREATE INDEX idx_scene_movie_time ON scene (movie_id, start_time_seconds);
+CREATE INDEX idx_scene_classification ON scene (level1_classification, level2_classification);
 
 -- 全文検索用インデックス
-CREATE INDEX idx_scenes_description ON scenes USING GIN (scene_description gin_trgm_ops);
-CREATE INDEX idx_scenes_tags ON scenes USING GIN (emotion_tags, atmosphere_tags);
+CREATE INDEX idx_scene_description ON scene USING GIN (scene_description gin_trgm_ops);
+CREATE INDEX idx_scene_tags ON scene USING GIN (emotion_tags, atmosphere_tags);
 
 -- ===========================================
--- SCENE_ACTORS テーブル（シーン-俳優 多対多）
+-- SCENE_ACTOR テーブル（シーン-俳優 多対多）
 -- ===========================================
-CREATE TABLE IF NOT EXISTS scene_actors (
+CREATE TABLE IF NOT EXISTS scene_actor (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    scene_id UUID NOT NULL REFERENCES scenes(id) ON DELETE CASCADE,
-    actor_id UUID NOT NULL REFERENCES actors(id) ON DELETE CASCADE,
+    scene_id UUID NOT NULL REFERENCES scene(id) ON DELETE CASCADE,
+    actor_id UUID NOT NULL REFERENCES actor(id) ON DELETE CASCADE,
     is_main_actor BOOLEAN DEFAULT false,
     screen_time_seconds INTEGER,
     dialogue_count INTEGER DEFAULT 0,
@@ -140,28 +140,28 @@ CREATE TABLE IF NOT EXISTS scene_actors (
 );
 
 -- インデックス
-CREATE INDEX idx_scene_actors_scene ON scene_actors (scene_id);
-CREATE INDEX idx_scene_actors_actor ON scene_actors (actor_id);
-CREATE INDEX idx_scene_actors_main ON scene_actors (is_main_actor);
+CREATE INDEX idx_scene_actor_scene ON scene_actor (scene_id);
+CREATE INDEX idx_scene_actor_actor ON scene_actor (actor_id);
+CREATE INDEX idx_scene_actor_main ON scene_actor (is_main_actor);
 
 -- ===========================================
--- PARALLEL_SCENE_GROUPS テーブル（並行シーン管理）
+-- PARALLEL_SCENE_GROUP テーブル（並行シーン管理）
 -- ===========================================
-CREATE TABLE IF NOT EXISTS parallel_scene_groups (
+CREATE TABLE IF NOT EXISTS parallel_scene_group (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    movie_id UUID NOT NULL REFERENCES movies(id) ON DELETE CASCADE,
+    movie_id UUID NOT NULL REFERENCES movie(id) ON DELETE CASCADE,
     group_name VARCHAR(100),
     description TEXT,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
 
 -- ===========================================
--- SCENE_DIALOGUES テーブル（台詞詳細管理）
+-- SCENE_DIALOGUE テーブル（台詞詳細管理）
 -- ===========================================
-CREATE TABLE IF NOT EXISTS scene_dialogues (
+CREATE TABLE IF NOT EXISTS scene_dialogue (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    scene_id UUID NOT NULL REFERENCES scenes(id) ON DELETE CASCADE,
-    actor_id UUID REFERENCES actors(id) ON DELETE SET NULL,
+    scene_id UUID NOT NULL REFERENCES scene(id) ON DELETE CASCADE,
+    actor_id UUID REFERENCES actor(id) ON DELETE SET NULL,
     character_name VARCHAR(100),
     dialogue_text TEXT NOT NULL,
     dialogue_order INTEGER NOT NULL,
@@ -171,14 +171,14 @@ CREATE TABLE IF NOT EXISTS scene_dialogues (
 );
 
 -- インデックス
-CREATE INDEX idx_dialogues_scene ON scene_dialogues (scene_id, dialogue_order);
-CREATE INDEX idx_dialogues_actor ON scene_dialogues (actor_id);
-CREATE INDEX idx_dialogues_text ON scene_dialogues USING GIN (dialogue_text gin_trgm_ops);
+CREATE INDEX idx_dialogues_scene ON scene_dialogue (scene_id, dialogue_order);
+CREATE INDEX idx_dialogues_actor ON scene_dialogue (actor_id);
+CREATE INDEX idx_dialogues_text ON scene_dialogue USING GIN (dialogue_text gin_trgm_ops);
 
 -- ===========================================
--- USERS テーブル（基本ユーザー管理）
+-- ACCOUNT_USER テーブル（基本ユーザー管理）
 -- ===========================================
-CREATE TABLE IF NOT EXISTS users (
+CREATE TABLE IF NOT EXISTS account_user (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     username VARCHAR(50) UNIQUE NOT NULL,
     email VARCHAR(100) UNIQUE NOT NULL,
@@ -190,9 +190,9 @@ CREATE TABLE IF NOT EXISTS users (
 );
 
 -- インデックス
-CREATE INDEX idx_users_username ON users (username);
-CREATE INDEX idx_users_email ON users (email);
-CREATE INDEX idx_users_role ON users (role);
+CREATE INDEX idx_account_user_username ON account_user (username);
+CREATE INDEX idx_account_user_email ON account_user (email);
+CREATE INDEX idx_account_user_role ON account_user (role);
 
 -- ===========================================
 -- UPDATE TRIGGERS（updated_at自動更新）
@@ -206,16 +206,16 @@ END;
 $$ language 'plpgsql';
 
 -- 各テーブルにトリガー設定
-CREATE TRIGGER update_movies_updated_at BEFORE UPDATE ON movies 
+CREATE TRIGGER update_movie_updated_at BEFORE UPDATE ON movie
     FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
-    
-CREATE TRIGGER update_actors_updated_at BEFORE UPDATE ON actors 
+
+CREATE TRIGGER update_actor_updated_at BEFORE UPDATE ON actor
     FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
-    
-CREATE TRIGGER update_scenes_updated_at BEFORE UPDATE ON scenes 
+
+CREATE TRIGGER update_scene_updated_at BEFORE UPDATE ON scene
     FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
-    
-CREATE TRIGGER update_users_updated_at BEFORE UPDATE ON users 
+
+CREATE TRIGGER update_account_user_updated_at BEFORE UPDATE ON account_user
     FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
 -- ===========================================
@@ -223,13 +223,13 @@ CREATE TRIGGER update_users_updated_at BEFORE UPDATE ON users
 -- ===========================================
 
 -- サンプル映画データ
-INSERT INTO movies (title, title_original, director, release_year, genre, duration_minutes, description) VALUES 
+INSERT INTO movie (title, title_original, director, release_year, genre, duration_minutes, description) VALUES
 ('七人の侍', 'Seven Samurai', '黒澤明', 1954, 'Drama', 207, '戦国時代を舞台にした時代劇の傑作'),
 ('東京物語', 'Tokyo Story', '小津安二郎', 1953, 'Drama', 136, '家族の絆を描いた不朽の名作')
 ON CONFLICT DO NOTHING;
 
 -- サンプル俳優データ
-INSERT INTO actors (name, name_original, nationality) VALUES 
+INSERT INTO actor (name, name_original, nationality) VALUES
 ('三船敏郎', 'Toshiro Mifune', '日本'),
 ('志村喬', 'Takashi Shimura', '日本'),
 ('笠智衆', 'Chishu Ryu', '日本'),
@@ -240,6 +240,6 @@ ON CONFLICT DO NOTHING;
 SELECT current_database(), current_user, version();
 
 -- テーブル作成確認
-SELECT table_name FROM information_schema.tables 
-WHERE table_schema = 'public' 
+SELECT table_name FROM information_schema.tables
+WHERE table_schema = 'public'
 ORDER BY table_name;

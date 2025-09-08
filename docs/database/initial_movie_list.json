@@ -13,7 +13,7 @@
     "scene_info_level": "full"
   },
   {
-    "id": "M002", 
+    "id": "M002",
     "title_jp": "ラストスタンド",
     "title_en": "Final Stand",
     "year": 2022,
@@ -28,7 +28,7 @@
   {
     "id": "M003",
     "title_jp": "笑いの魔法",
-    "title_en": "Magic of Laughter", 
+    "title_en": "Magic of Laughter",
     "year": 2024,
     "director": "鈴木 花子",
     "cast": ["高橋 太郎", "伊藤 加奈"],
@@ -43,7 +43,7 @@
     "title_jp": "深淵の恐怖",
     "title_en": "Abyss Terror",
     "year": 2023,
-    "director": "マーク・ウィルソン", 
+    "director": "マーク・ウィルソン",
     "cast": ["サラ・ブラウン", "デヴィッド・ミラー"],
     "genre": "ホラー",
     "duration": 118,
