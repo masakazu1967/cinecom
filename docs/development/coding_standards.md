@@ -314,13 +314,13 @@ function createUser(params: CreateUserParams): Promise<User> { ... }
   戦略: 即座例外発生（Fail Fast）
   対象: ビジネスルール違反・不変条件違反
   目的: 無効な状態での動作継続を防ぐ
-  実装: DomainError でthrow
+  実装: DomainError派生エラー でthrow
 
 アプリケーション層:
   戦略: 例外ハンドリング
   対象: 入力検証・ユースケース実行エラー
   目的: ビジネス例外の適切な変換・伝播
-  実装: ApplicationError でthrow
+  実装: ApplicationError派生エラー でthrow
 
 インフラ層:
   戦略: 例外ハンドリング
@@ -346,18 +346,35 @@ class DomainError extends Error {
   }
 }
 
+class ValidationError extends DomainError {
+  constructor(
+    message: string,
+    public fieldName: string,
+    public readonly code: string,
+    value?: unknown
+  ) {
+    super(message, code, value);
+    // this.name の設定は不要（親クラスで自動設定）
+  }
+}
+
+class BusinessRuleError extends DomainError {
+  constructor(
+    message: string,
+    public fieldName: string,
+    public readonly code: string,
+    value?: unknown
+  ) {
+    super(message, code, value);
+    // this.name の設定は不要（親クラスで自動設定）
+  }
+}
+
 // アプリケーション層のエラー（ユースケース実行・入力検証）
 class ApplicationError extends Error {
   constructor(message: string, public code?: string, public details?: any) {
     super(message);
     this.name = this.constructor.name;
-  }
-}
-
-class ValidationError extends ApplicationError {
-  constructor(message: string, public field: string, public code: string) {
-    super(message, code);
-    // this.name の設定は不要（親クラスで自動設定）
   }
 }
 
@@ -369,13 +386,6 @@ class InfrastructureError extends Error {
     if (originalError) {
       this.stack = originalError.stack;
     }
-  }
-}
-
-class NotFoundError extends InfrastructureError {
-  constructor(message: string) {
-    super(message);
-    // this.name の設定は不要（親クラスで自動設定）
   }
 }
 
@@ -397,36 +407,18 @@ class DatabaseConstraintError extends InfrastructureError {
   }
 }
 
-// アプリケーション層での例外ハンドリング
-async function validateUserInApplicationLayer(data: unknown): Promise<User> {
-  try {
-    // 外部ライブラリ（Joi等）のバリデーション
-    const user = await userSchema.validateAsync(data);
-    return user;
-  } catch (error) {
-    // ライブラリエラーをアプリケーションエラーに変換
-    if (error.isJoi) {
-      throw new ValidationError(
-        'Invalid user data',
-        error.details[0].path[0],
-        'VALIDATION_FAILED'
-      );
-    }
-    throw new ApplicationError('User validation failed', 'VALIDATION_ERROR');
-  }
-}
-
 // リポジトリでの動的エラーハンドラー使用例
 @Injectable()
-export class UserRepository {
+export class TypeOrmUserRepository imeplements UserRepository {
   constructor(
-    @InjectRepository(User) private repository: Repository<User>,
+    @InjectRepository(UserRecord) private repository: Repository<UserRecord>,
     private errorHandler: DatabaseErrorHandlerService
   ) {}
 
   async save(user: User): Promise<User> {
     try {
-      return await this.repository.save(user);
+      const record = this.toRecord(user);
+      return await this.repository.save(record);
     } catch (error) {
       if (error instanceof QueryFailedError) {
         // 動的に注入されたハンドラーを使用
@@ -436,15 +428,27 @@ export class UserRepository {
     }
   }
 
-  async findById(id: string): Promise<User | null> {
+  async findById(id: UserId): Promise<User | null> {
     try {
-      return await this.repository.findOne({ where: { id } });
+      const record = await this.repository.findOne({ where: { id: id.value } });
+      if (!record) {
+        return null;
+      }
+      return this.from(record);
     } catch (error) {
       if (error instanceof QueryFailedError) {
         this.errorHandler.handleError(error);
       }
       throw new InfrastructureError('Failed to fetch user', error);
     }
+  }
+
+  private fromRecord(record: UserRecord): User {
+    //...
+  }
+
+  private toRecord(domain: User): UserRecord {
+    //...
   }
 }
 
@@ -572,40 +576,39 @@ export const useMovieSearch = (query: string) => {
 ### 4.1 コントローラー
 
 ```typescript
-@Controller('movies')
 @ApiTags('movies')
-export class MoviesController {
-  constructor(private readonly moviesService: MoviesService) {}
+@Controller('/movies')
+export class MovieController {
+  constructor(
+    @Inject(MovieToken.CreateMovieUsecase)
+    private readonly createMovieUsecase: CreateMovieUsecase,
+  ) {}
 
-  @Get()
-  @ApiOperation({ summary: '映画一覧を取得' })
-  @ApiQuery({ name: 'page', required: false, type: Number })
-  @ApiQuery({ name: 'limit', required: false, type: Number })
-  async findAll(
-    @Query() query: GetMoviesQueryDto
-  ): Promise<PaginatedResponse<Movie>> {
-    return this.moviesService.findAll(query);
-  }
-
+  @ApiOperation({
+    summary: '映像作品を作成',
+    description: '新しい映像作品を作成します',
+  })
+  @ApiResponse({
+    status: 201,
+    description: '映像作品が正常に作成されました',
+    type: MovieViewModel,
+  })
+  @ApiResponse({
+    status: 400,
+    description: '不正なリクエスト',
+  })
+  @ApiResponse({
+    status: 409,
+    description: '同じタイトルの映像作品が既に存在します',
+  })
   @Post()
-  @ApiOperation({ summary: '映画を作成' })
-  @ApiBody({ type: CreateMovieDto })
-  @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles('admin', 'moderator')
-  async create(
-    @Body() createMovieDto: CreateMovieDto
-  ): Promise<Movie> {
-    // プレゼンテーション層のDTOをアプリケーション層のコマンドに変換
-    const createMovieCommand = {
-      title: createMovieDto.title,
-      description: createMovieDto.description,
-      releaseDate: new Date(createMovieDto.releaseDate),
-      genreIds: createMovieDto.genreIds
-    };
+  async create(@Body() dto: CreateMovieDto): Promise<MovieViewModel> {
+    const request = CreateMovieRequest.create(dto);
+    const response = await this.createMovieUsecase.execute(request);
 
     // アプリケーション層からのエラーをそのまま受け取り
     // Exception Filterで適切なHTTPステータスに変換される
-    return this.moviesService.create(createMovieCommand);
+    return MovieViewModel.convert(response.movie);
   }
 }
 ```

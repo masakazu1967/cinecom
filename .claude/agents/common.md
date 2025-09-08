@@ -19,3 +19,7 @@
 - パッケージ管理ツールは`pnpm`を使用しています。
 - 各パッケージやサービスへのショートカットはルートの`package.json`の`scripts`に設定しています。(`"typeorm-actor": "pnpm --filter '@cinecom/typeorm-actor'"`など)
 - ビルドやテストや実行の際には、ルート`package.json`の`script`で記述したコマンドを使用してください。(`@cinecom/movie`のビルドの場合は、`pnpm movie build`など)
+
+## 調査方法
+
+- ライブラリの仕様を確認する時は、MCP ServerのContext7を使用してください。
