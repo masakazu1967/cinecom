@@ -29,6 +29,8 @@ async function bootstrap() {
   const port = configService.get<number>('PORT', 3001);
   await app.listen(port);
 
-  console.log(`🚀 Scene Service is running on: http://localhost:${port}/api/v1`);
+  console.log(
+    `🚀 Scene Service is running on: http://localhost:${port}/api/v1`,
+  );
 }
 void bootstrap();
