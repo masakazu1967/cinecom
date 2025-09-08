@@ -1,0 +1,1 @@
+export { UuidMovieModule } from './UuidMovieModule';
