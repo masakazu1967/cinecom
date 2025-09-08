@@ -26,6 +26,7 @@
     "review": "pnpm --filter '@cinecom/review'",
     "scene": "pnpm --filter '@cinecom/scene'",
     "user": "pnpm --filter '@cinecom/user'",
+    "uuid-movie": "pnpm --filter '@cinecom/uuid-movie'",
     "typeorm-actor": "pnpm --filter '@cinecom/typeorm-actor'",
     "typeorm-movie": "pnpm --filter '@cinecom/typeorm-movie'",
     "typeorm-review": "pnpm --filter '@cinecom/typeorm-review'",
